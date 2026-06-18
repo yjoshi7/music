@@ -1,401 +1,2590 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🎵 Melodify — Pro Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Melodify — Stream Your Vibe</title>
+    <!-- Google Font for clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <!-- Font Awesome 6 for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        :root {
-            --bg: #0a0a14;
-            --surface: rgba(255,255,255,0.04);
-            --surface-hover: rgba(255,255,255,0.08);
-            --card: rgba(20,20,40,0.7);
-            --border: rgba(255,255,255,0.1);
-            --accent: #ff6b6b;
-            --accent2: #48dbfb;
-            --text: #ffffff;
-            --text-secondary: rgba(255,255,255,0.65);
-            --text-muted: rgba(255,255,255,0.4);
-            --radius: 14px;
-            --radius-sm: 10px;
-            --font: 'Inter', sans-serif;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        html { font-size:16px; }
+        :root {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-glass: rgba(255, 255, 255, 0.06);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --coral: #ff6b6b;
+            --cyan: #48dbfb;
+            --coral-dim: rgba(255, 107, 107, 0.15);
+            --cyan-dim: rgba(72, 219, 251, 0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --transition: 0.25s ease;
+            --sidebar-width: 240px;
+            --player-height: 80px;
+            --header-height: 64px;
+        }
+        html,
         body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh; height: 100dvh;
-            display: flex; flex-direction: column;
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            background-image: radial-gradient(ellipse at 30% 20%, rgba(255,107,107,0.12) 0%, transparent 60%),
-                              radial-gradient(ellipse at 80% 80%, rgba(72,219,251,0.08) 0%, transparent 60%);
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            outline: none;
+            background: none;
+            color: inherit;
+        }
+        input,
+        select {
+            font-family: inherit;
+            outline: none;
+            border: none;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            width: 100%;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+        input:focus,
+        select:focus {
+            border-color: var(--cyan);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        input::placeholder {
+            color: var(--text-muted);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
 
-        /* ========== ANIMATED LOGIN ========== */
-        .login-screen {
-            position: fixed; inset:0; z-index:200;
-            display: flex; align-items: center; justify-content: center;
-            background: var(--bg);
+        /* ===== TOAST ===== */
+        #toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 360px;
+            width: 100%;
+        }
+        .toast {
+            pointer-events: auto;
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            background: rgba(30, 30, 30, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastIn 0.35s ease forwards;
+            color: var(--text-primary);
+        }
+        .toast i {
+            font-size: 1.2rem;
+        }
+        .toast.success i {
+            color: #4ade80;
+        }
+        .toast.error i {
+            color: var(--coral);
+        }
+        .toast.info i {
+            color: var(--cyan);
+        }
+        .toast.out {
+            animation: toastOut 0.3s ease forwards;
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(30px) scale(0.96);
+            }
+        }
+
+        /* ===== LOGIN SCREEN ===== */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at 30% 20%, #1a0a0a, var(--bg-primary) 70%);
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        #login-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
         .login-card {
-            background: var(--card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 40px 28px;
-            width: 90%; max-width: 380px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            padding: 48px 40px 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform: translateY(40px);
+            opacity: 0;
+        }
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .login-card .logo {
             text-align: center;
-            animation: fadeSlideUp 0.6s ease-out;
+            margin-bottom: 32px;
         }
-        @keyframes fadeSlideUp {
-            from { opacity:0; transform: translateY(40px); }
-            to { opacity:1; transform: translateY(0); }
+        .login-card .logo i {
+            font-size: 3.2rem;
+            background: linear-gradient(135deg, var(--coral), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            animation: pulseIcon 2.4s ease-in-out infinite;
         }
-        .login-icon {
-            font-size: 3.5rem;
-            animation: pulse 2s infinite;
+        @keyframes pulseIcon {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.06);
+            }
         }
-        @keyframes pulse {
-            0%,100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+        .login-card .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 4px;
+            background: linear-gradient(135deg, var(--coral), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .login-card h1 { font-weight:800; font-size:2rem; margin:8px 0 4px; }
-        .login-card p { color: var(--text-secondary); margin-bottom:24px; }
-        .input-group {
-            margin-bottom: 14px;
+        .login-card .logo p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            -webkit-text-fill-color: var(--text-secondary);
+        }
+        .login-card .form-group {
+            margin-bottom: 18px;
+        }
+        .login-card .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+        .login-card .form-group input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+        }
+        .login-card .form-group input:focus {
+            border-color: var(--cyan);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 1rem;
+            background: linear-gradient(135deg, var(--coral), #e55a5a);
+            color: #fff;
+            transition: var(--transition);
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+        .login-btn:hover {
+            transform: scale(1.01);
+            box-shadow: 0 0 24px rgba(255, 107, 107, 0.3);
+        }
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+        .login-error {
+            color: var(--coral);
+            font-size: 0.85rem;
+            margin-top: 12px;
+            text-align: center;
+            min-height: 24px;
+        }
+
+        /* ===== MAIN APP LAYOUT ===== */
+        #app {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background: var(--bg-primary);
             position: relative;
         }
-        .input-group input {
-            width:100%; padding:15px 20px; border-radius:50px;
-            border:2px solid var(--border); background: rgba(255,255,255,0.05);
-            color: white; font-size:0.95rem; outline:none;
-            transition: all 0.3s; font-family: var(--font);
+        #app.active {
+            display: flex;
+            flex-direction: column;
         }
-        .input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(255,107,107,0.2);
-        }
-        .btn-primary {
-            width:100%; padding:15px; border-radius:50px;
-            border:none; background: var(--accent); color:white;
-            font-weight:700; font-size:1rem; cursor:pointer;
-            transition: all 0.3s; font-family: var(--font);
-            margin-top: 8px;
-        }
-        .btn-primary:hover { background: #ff5252; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,107,107,0.4); }
-        .error-message { color: var(--accent); font-size:0.85rem; margin-top:10px; display:none; }
 
-        /* ========== MAIN APP ========== */
-        .app-container { display:flex; flex:1; overflow:hidden; }
-        .sidebar {
-            width:270px; min-width:270px;
-            background: var(--card); backdrop-filter: blur(20px);
-            border-right:1px solid var(--border); display:flex;
-            flex-direction: column; height:100%; z-index:20;
-            transition: transform 0.3s ease;
+        /* ===== SIDEBAR ===== */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-glass);
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
         }
-        @media (max-width:768px) {
-            .sidebar { position:fixed; left:0; top:0; bottom:0; transform: translateX(-100%); width:280px; }
-            .sidebar.open { transform: translateX(0); }
+        #sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 4px 24px 4px;
+            font-size: 1.3rem;
+            font-weight: 700;
         }
-        .sidebar-logo { padding:24px 20px; display:flex; align-items:center; gap:12px; }
-        .sidebar-logo .logo-icon { width:42px; height:42px; background: var(--accent); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
-        .sidebar-logo h2 { font-weight:800; }
-        .sidebar-nav { flex:1; overflow-y:auto; padding:8px 12px; }
-        .nav-item, .playlist-item {
-            display:flex; align-items:center; gap:10px; padding:12px 14px;
-            border-radius: var(--radius-sm); cursor:pointer;
-            color: var(--text-secondary); font-size:0.9rem; transition: 0.2s;
-            margin-bottom: 2px;
+        #sidebar .brand i {
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--coral), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .nav-item:hover, .nav-item.active,
-        .playlist-item:hover, .playlist-item.active-playlist {
-            background: var(--surface-hover); color: white;
+        #sidebar .brand span {
+            background: linear-gradient(135deg, var(--coral), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .sidebar-section { font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); padding:16px 14px 6px; }
-        .btn-create-playlist {
-            margin:8px 14px; padding:10px; border-radius:10px;
-            background: rgba(255,255,255,0.05); border:2px dashed var(--border);
-            color: var(--text-secondary); cursor:pointer; font-weight:600;
-            transition: 0.2s;
+        #sidebar .user-badge {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding: 0 4px 20px 4px;
+            border-bottom: 1px solid var(--border-glass);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .btn-create-playlist:hover { background: rgba(255,255,255,0.1); color:white; }
-        .admin-btn { margin:8px 14px; padding:8px; border-radius:10px; background: rgba(255,255,255,0.05); color:var(--accent2); border:1px solid var(--accent2); cursor:pointer; font-weight:600; }
+        #sidebar .user-badge .role {
+            background: var(--cyan-dim);
+            color: var(--cyan);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #sidebar .user-badge .role.admin {
+            background: var(--coral-dim);
+            color: var(--coral);
+        }
+        .nav-list {
+            list-style: none;
+            flex: 1;
+        }
+        .nav-list li {
+            margin-bottom: 4px;
+        }
+        .nav-list li a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .nav-list li a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .nav-list li a:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+        }
+        .nav-list li a.active {
+            background: var(--cyan-dim);
+            color: var(--cyan);
+        }
+        .nav-list li a.admin-only {
+            color: var(--coral);
+            opacity: 0.7;
+        }
+        .nav-list li a.admin-only:hover {
+            opacity: 1;
+            background: var(--coral-dim);
+        }
+        .nav-list .logout-btn {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-glass);
+            padding-top: 16px;
+            color: var(--text-muted);
+        }
+        .nav-list .logout-btn a {
+            color: var(--text-muted);
+        }
+        .nav-list .logout-btn a:hover {
+            color: var(--coral);
+            background: var(--coral-dim);
+        }
 
-        .main-content { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-        .main-header {
-            padding:16px 20px; background: var(--card); backdrop-filter: blur(20px);
-            border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px;
+        /* ===== SIDEBAR TOGGLE (mobile) ===== */
+        #sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 110;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+            align-items: center;
+            justify-content: center;
         }
-        .main-header h3 { flex:1; font-weight:700; }
-        .search-bar {
-            display:flex; align-items:center; gap:8px;
-            background: var(--surface); border:1px solid var(--border);
-            border-radius:50px; padding:8px 16px;
+        #sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
-        .search-bar input { border:none; background:transparent; color:white; width:130px; outline:none; font-family:var(--font); }
-        .menu-btn { background:none; border:none; font-size:1.4rem; color:white; display:none; cursor:pointer; }
-        @media (max-width:768px) { .menu-btn { display:block; } }
-        .desktop-add-btn { padding:10px 20px; border-radius:50px; background: var(--accent); color:white; border:none; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
-        .content-area { flex:1; overflow-y:auto; padding:16px 20px 120px; display:flex; flex-direction:column; gap:8px; }
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 90;
+            backdrop-filter: blur(4px);
+        }
 
+        /* ===== MAIN CONTENT ===== */
+        #main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            padding-bottom: var(--player-height);
+        }
+        #content-header {
+            padding: 16px 32px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            min-height: var(--header-height);
+        }
+        #content-header .search-wrap {
+            flex: 1;
+            position: relative;
+            max-width: 420px;
+        }
+        #content-header .search-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        #content-header .search-wrap input {
+            padding-left: 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 30px;
+            height: 42px;
+            font-size: 0.9rem;
+        }
+        #content-header .search-wrap input:focus {
+            border-color: var(--cyan);
+        }
+        #content-header .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        #content-header .header-actions .btn-add-song {
+            padding: 8px 18px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, var(--coral), #e55a5a);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        #content-header .header-actions .btn-add-song:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        }
+        #content-header .header-actions .btn-add-song i {
+            font-size: 0.9rem;
+        }
+
+        /* ===== CONTENT BODY ===== */
+        #content-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px 32px;
+        }
+
+        /* ===== VIEW SECTIONS ===== */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .view-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .view-section h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+        .view-section .subhead {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* ===== SONG LIST ===== */
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
         .song-row {
-            display:flex; align-items:center; gap:12px; padding:10px 14px;
-            border-radius: var(--radius-sm); background: var(--surface);
-            border:1px solid transparent; transition:0.2s; cursor:pointer;
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr 1fr 120px;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            border: 1px solid transparent;
+            transition: var(--transition);
+            gap: 12px;
+            cursor: default;
         }
-        .song-row:hover { background: var(--surface-hover); border-color: var(--accent2); }
-        .song-row.playing { background: rgba(255,107,107,0.15); border-color: var(--accent); }
-        .song-index { width:32px; height:32px; border-radius:8px; background: rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-weight:700; }
-        .album-art { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; }
-        .song-info { flex:1; min-width:0; }
-        .song-title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .song-artist { font-size:0.78rem; color:var(--text-secondary); }
-        .song-actions { display:flex; gap:4px; opacity:0; transition:0.2s; }
-        .song-row:hover .song-actions { opacity:1; }
-        .song-actions button { width:30px; height:30px; border-radius:50%; border:none; background: rgba(255,255,255,0.12); color:white; cursor:pointer; font-size:0.8rem; }
-
-        .fab { position:fixed; bottom:100px; right:20px; width:56px; height:56px; border-radius:50%; background:var(--accent); color:white; border:none; box-shadow:0 8px 20px rgba(255,107,107,0.4); font-size:1.8rem; cursor:pointer; display:none; align-items:center; justify-content:center; z-index:30; }
-        @media (max-width:768px) { .fab { display:flex; } }
-
-        .player-bar {
-            position:fixed; bottom:0; left:0; right:0;
-            background: var(--card); backdrop-filter: blur(20px);
-            border-top:1px solid var(--border); padding:8px 16px;
-            padding-bottom:calc(8px + var(--safe-bottom)); z-index:50;
-            display:flex; flex-direction:column; gap:6px;
+        .song-row:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--border-glass);
         }
-        .progress-container { display:flex; align-items:center; gap:8px; }
-        .progress-bar {
-            flex:1; height:5px; background: rgba(255,255,255,0.15);
-            border-radius:10px; cursor:pointer; position:relative;
+        .song-row .idx {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: 500;
         }
-        .progress-fill { height:100%; background:var(--accent); border-radius:10px; width:0%; }
-        .time { font-size:0.7rem; color:var(--text-muted); width:36px; text-align:center; }
-        .player-main { display:flex; align-items:center; gap:12px; }
-        .player-controls { display:flex; align-items:center; gap:10px; }
-        .player-controls button { background:none; border:none; font-size:1.2rem; color:white; cursor:pointer; }
-        .btn-play-main { width:40px; height:40px; border-radius:50%; background:var(--accent); color:white; border:none; font-size:1.3rem; }
+        .song-row .s-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .song-row .s-artist {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .song-row .s-movie {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .song-row .s-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+        .song-row .s-actions button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            background: transparent;
+        }
+        .song-row .s-actions button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+        .song-row .s-actions .play-btn:hover {
+            color: var(--cyan);
+            background: var(--cyan-dim);
+        }
+        .song-row .s-actions .queue-btn:hover {
+            color: var(--coral);
+            background: var(--coral-dim);
+        }
+        .song-row .s-actions .del-btn:hover {
+            color: var(--coral);
+            background: var(--coral-dim);
+        }
+        .song-row .s-actions .playlist-add-btn:hover {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.15);
+        }
+        .song-row.current {
+            background: var(--cyan-dim);
+            border-color: var(--cyan);
+        }
+        .song-row.current .idx {
+            color: var(--cyan);
+        }
 
-        .bottom-sheet { ... }
-        /* (I'll include full sheet styles, they're lengthy; trust the final code) */
-
-        .toast { position:fixed; top:20px; right:20px; background:var(--accent); color:white; padding:10px 20px; border-radius:50px; z-index:300; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from{transform:translateX(100%);opacity:0;} to{transform:translateX(0);opacity:1;} }
-
-        .movie-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:12px; }
+        /* ===== MOVIE GRID ===== */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
         .movie-card {
-            background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
-            padding:20px; text-align:center; cursor:pointer; transition:0.2s;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            padding: 20px 16px 16px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
         }
-        .movie-card:hover { background:var(--surface-hover); transform:translateY(-2px); }
-        .movie-icon { font-size:2rem; margin-bottom:8px; }
-        .movie-name { font-weight:600; }
-        .movie-count { font-size:0.75rem; color:var(--text-muted); }
+        .movie-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--cyan);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+        .movie-card i {
+            font-size: 2.6rem;
+            color: var(--cyan);
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+        .movie-card .m-title {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .movie-card .m-count {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        /* ===== PLAYLIST LIST ===== */
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .playlist-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            padding: 18px 16px;
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .playlist-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--cyan);
+        }
+        .playlist-card .pl-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .playlist-card .pl-info i {
+            font-size: 1.6rem;
+            color: var(--coral);
+            opacity: 0.7;
+        }
+        .playlist-card .pl-info .pl-name {
+            font-weight: 500;
+        }
+        .playlist-card .pl-info .pl-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .playlist-card .pl-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .playlist-card .pl-actions button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .playlist-card .pl-actions button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+        .playlist-card .pl-actions .del-pl-btn:hover {
+            color: var(--coral);
+            background: var(--coral-dim);
+        }
+
+        /* ===== QUEUE LIST ===== */
+        .queue-list .song-row .s-actions .remove-queue-btn:hover {
+            color: var(--coral);
+            background: var(--coral-dim);
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 16px;
+        }
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* ===== BOTTOM PLAYER ===== */
+        #player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--player-height);
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 16px;
+            z-index: 100;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #player-bar .now-playing {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 160px;
+            max-width: 220px;
+        }
+        #player-bar .now-playing .np-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: var(--cyan-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--cyan);
+            font-size: 1.2rem;
+        }
+        #player-bar .now-playing .np-info {
+            overflow: hidden;
+        }
+        #player-bar .now-playing .np-info .np-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #player-bar .now-playing .np-info .np-artist {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #player-bar .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+            max-width: 500px;
+        }
+        #player-bar .player-controls button {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        #player-bar .player-controls button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+        #player-bar .player-controls .play-toggle {
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, var(--coral), #e55a5a);
+            color: #fff;
+        }
+        #player-bar .player-controls .play-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 24px rgba(255, 107, 107, 0.3);
+            background: linear-gradient(135deg, #ff7a7a, #e55a5a);
+        }
+        #player-bar .player-controls .shuffle.active,
+        #player-bar .player-controls .repeat.active {
+            color: var(--cyan);
+        }
+        #player-bar .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 120px;
+            max-width: 400px;
+        }
+        #player-bar .progress-area .time {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            min-width: 40px;
+        }
+        #player-bar .progress-area .progress-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: height 0.2s;
+        }
+        #player-bar .progress-area .progress-track:hover {
+            height: 6px;
+        }
+        #player-bar .progress-area .progress-track .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--coral), var(--cyan));
+            border-radius: 4px;
+            transition: width 0.05s linear;
+        }
+        #player-bar .volume-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 100px;
+            max-width: 140px;
+        }
+        #player-bar .volume-wrap i {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        #player-bar .volume-wrap input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            outline: none;
+            padding: 0;
+            transition: var(--transition);
+        }
+        #player-bar .volume-wrap input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+            border: 2px solid var(--bg-primary);
+        }
+        #player-bar .volume-wrap input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+            border: 2px solid var(--bg-primary);
+        }
+
+        /* ===== MODAL / BOTTOM SHEET ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            animation: modalFade 0.25s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal-sheet {
+            background: var(--bg-secondary);
+            border-radius: var(--radius) var(--radius) 0 0;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            padding: 28px 28px 32px;
+            overflow-y: auto;
+            animation: sheetUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--border-glass);
+            border-bottom: none;
+        }
+        @keyframes sheetUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-sheet .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-sheet .sheet-header h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .modal-sheet .sheet-header .close-sheet {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .modal-sheet .sheet-header .close-sheet:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+        .modal-sheet .form-group {
+            margin-bottom: 16px;
+        }
+        .modal-sheet .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .modal-sheet .form-group input,
+        .modal-sheet .form-group select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+        }
+        .modal-sheet .form-group input:focus,
+        .modal-sheet .form-group select:focus {
+            border-color: var(--cyan);
+        }
+        .modal-sheet .btn-primary {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--cyan), #3bb8d6);
+            color: #fff;
+            transition: var(--transition);
+            margin-top: 4px;
+        }
+        .modal-sheet .btn-primary:hover {
+            transform: scale(1.01);
+            box-shadow: 0 0 24px rgba(72, 219, 251, 0.25);
+        }
+        .modal-sheet .btn-danger {
+            background: linear-gradient(135deg, var(--coral), #e55a5a);
+        }
+        .modal-sheet .btn-danger:hover {
+            box-shadow: 0 0 24px rgba(255, 107, 107, 0.25);
+        }
+
+        /* ===== FLOATING ADD BUTTON (mobile) ===== */
+        #fab-add {
+            display: none;
+            position: fixed;
+            bottom: calc(var(--player-height) + 20px);
+            right: 20px;
+            z-index: 90;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--coral), #e55a5a);
+            color: #fff;
+            font-size: 1.6rem;
+            box-shadow: 0 4px 24px rgba(255, 107, 107, 0.4);
+            transition: var(--transition);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #fab-add:hover {
+            transform: scale(1.06);
+            box-shadow: 0 6px 32px rgba(255, 107, 107, 0.5);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            #sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            #sidebar-overlay.active {
+                display: block;
+            }
+            #sidebar-toggle {
+                display: flex;
+            }
+            #main-content {
+                margin-left: 0;
+            }
+            #player-bar {
+                margin-left: 0;
+            }
+            #content-header {
+                padding: 12px 16px 12px 72px;
+            }
+            #content-body {
+                padding: 16px;
+            }
+            #fab-add {
+                display: flex;
+            }
+            .header-actions .btn-add-song {
+                display: none !important;
+            }
+            .song-row {
+                grid-template-columns: 30px 1fr 80px;
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            .song-row .s-artist {
+                display: none;
+            }
+            .song-row .s-movie {
+                display: none;
+            }
+            .song-row .s-actions {
+                gap: 2px;
+            }
+            .song-row .s-actions button {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
+            }
+            .playlist-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+            #player-bar {
+                padding: 0 12px;
+                gap: 10px;
+                height: 72px;
+            }
+            #player-bar .now-playing {
+                min-width: 100px;
+                max-width: 140px;
+            }
+            #player-bar .now-playing .np-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+            #player-bar .player-controls button {
+                width: 32px;
+                height: 32px;
+                font-size: 0.85rem;
+            }
+            #player-bar .player-controls .play-toggle {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+            #player-bar .progress-area {
+                min-width: 60px;
+            }
+            #player-bar .volume-wrap {
+                display: none;
+            }
+            .modal-sheet {
+                padding: 20px;
+                max-width: 100%;
+                border-radius: var(--radius) var(--radius) 0 0;
+            }
+            .login-card {
+                padding: 32px 24px 28px;
+                margin: 0 16px;
+            }
+        }
+        @media (max-width: 480px) {
+            #content-header .search-wrap {
+                max-width: 100%;
+            }
+            .song-row {
+                grid-template-columns: 28px 1fr 60px;
+                font-size: 0.8rem;
+                gap: 6px;
+            }
+            .song-row .s-actions button {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+            .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+            #player-bar .now-playing {
+                min-width: 70px;
+                max-width: 100px;
+            }
+            #player-bar .now-playing .np-info .np-title {
+                font-size: 0.75rem;
+            }
+            #player-bar .now-playing .np-info .np-artist {
+                font-size: 0.65rem;
+            }
+            #player-bar .player-controls {
+                gap: 2px;
+            }
+            #player-bar .player-controls button {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+            #player-bar .player-controls .play-toggle {
+                width: 34px;
+                height: 34px;
+                font-size: 0.9rem;
+            }
+            #player-bar .progress-area .time {
+                font-size: 0.6rem;
+                min-width: 30px;
+            }
+            #sidebar {
+                width: 260px;
+            }
+            #content-header {
+                padding: 10px 12px 10px 64px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            #content-header .search-wrap {
+                order: 2;
+                flex-basis: 100%;
+                max-width: 100%;
+            }
+            #content-header .header-actions {
+                order: 1;
+            }
+            #fab-add {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+                bottom: calc(var(--player-height) + 16px);
+                right: 16px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<!-- ========== LOGIN SCREEN ========== -->
-<div id="loginScreen" class="login-screen">
-    <div class="login-card">
-        <div class="login-icon">🎵</div>
-        <h1>Melodify</h1>
-        <p>Sign in to continue</p>
-        <div class="input-group">
-            <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
-        </div>
-        <div class="input-group">
-            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-        </div>
-        <button class="btn-primary" id="loginBtn">Login</button>
-        <p class="error-message" id="loginError">Invalid credentials</p>
-    </div>
-</div>
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div id="toast-container"></div>
 
-<!-- ========== MAIN APP (hidden until login) ========== -->
-<div id="appContainer" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-    <div class="app-container">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-logo">
-                <div class="logo-icon">🎵</div>
-                <h2>Melodify</h2>
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="logo">
+                <i class="fas fa-headphones"></i>
+                <h1>Melodify</h1>
+                <p>stream your vibe</p>
             </div>
-            <nav class="sidebar-nav">
-                <div class="nav-item active" data-view="library">📚 Library</div>
-                <div class="nav-item" data-view="queue">⏳ Queue <span id="queueBadge" style="margin-left:auto;font-size:0.8rem;"></span></div>
-                <div class="nav-item" data-view="movies">🎬 Movies</div>
-                <div class="sidebar-section">🎧 Playlists</div>
-                <div id="playlistContainer"></div>
-                <button class="btn-create-playlist" id="btnNewPlaylist" style="display:none;">+ New Playlist</button>
-                <button class="admin-btn" id="btnManageUsers" style="display:none;">👥 Manage Users</button>
-            </nav>
-        </aside>
-        <main class="main-content">
-            <div class="main-header">
-                <button class="menu-btn" id="menuToggle">☰</button>
-                <h3 id="viewTitle">📚 Library</h3>
-                <div class="search-bar"><span>🔍</span><input type="text" id="searchInput" placeholder="Filter..."></div>
-                <button class="desktop-add-btn" id="desktopAddBtn" style="display:none;">＋ Add Song</button>
-            </div>
-            <div class="content-area" id="contentArea"></div>
-        </main>
-        <button class="fab" id="fabAdd" style="display:none;">＋</button>
+            <form id="login-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" required />
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="login-btn">Sign In</button>
+                <div class="login-error" id="login-error"></div>
+            </form>
+        </div>
     </div>
 
-    <!-- Player bar -->
-    <div class="player-bar" id="playerBar">
-        <div class="progress-container">
-            <span class="time" id="currentTime">0:00</span>
-            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
-            <span class="time" id="totalTime">0:00</span>
-        </div>
-        <div class="player-main">
-            <div class="album-art" id="npArt" style="width:44px;height:44px;background:var(--accent);">🎶</div>
-            <div style="flex:1; min-width:0;">
-                <div id="npTitle" style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">No song</div>
-                <div id="npArtist" style="font-size:0.7rem; color:var(--text-muted);"></div>
+    <!-- ===== MAIN APP ===== -->
+    <div id="app">
+        <!-- Sidebar Overlay (mobile) -->
+        <div id="sidebar-overlay"></div>
+
+        <!-- Sidebar Toggle (mobile) -->
+        <button id="sidebar-toggle" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- ===== SIDEBAR ===== -->
+        <nav id="sidebar">
+            <div class="brand">
+                <i class="fas fa-headphones"></i>
+                <span>Melodify</span>
             </div>
+            <div class="user-badge">
+                <span id="sidebar-email">user@example.com</span>
+                <span class="role" id="sidebar-role">user</span>
+            </div>
+            <ul class="nav-list">
+                <li><a class="active" data-view="library"><i class="fas fa-music"></i> Library</a></li>
+                <li><a data-view="movies"><i class="fas fa-film"></i> Movies</a></li>
+                <li><a data-view="playlists"><i class="fas fa-list-ul"></i> Playlists</a></li>
+                <li><a data-view="queue"><i class="fas fa-clock"></i> Queue</a></li>
+                <li class="admin-only" id="nav-manage-users" style="display:none;">
+                    <a data-view="manage-users" class="admin-only"><i class="fas fa-users-cog"></i> Manage Users</a>
+                </li>
+                <li class="logout-btn"><a id="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <div id="main-content">
+            <!-- Header -->
+            <header id="content-header">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search songs, artists, movies…" />
+                </div>
+                <div class="header-actions">
+                    <button class="btn-add-song" id="btn-add-song-desktop">
+                        <i class="fas fa-plus"></i> Add Song
+                    </button>
+                </div>
+            </header>
+
+            <!-- Body -->
+            <div id="content-body">
+                <!-- LIBRARY -->
+                <section class="view-section active" id="view-library">
+                    <h2>🎵 Music Library</h2>
+                    <div class="song-list" id="library-list"></div>
+                </section>
+
+                <!-- MOVIES -->
+                <section class="view-section" id="view-movies">
+                    <h2>🎬 Movies &amp; Albums</h2>
+                    <div class="movie-grid" id="movies-grid"></div>
+                    <div id="movie-songs-container" style="margin-top:24px;display:none;">
+                        <button id="back-to-movies" style="color:var(--cyan);margin-bottom:12px;font-size:0.9rem;">
+                            <i class="fas fa-arrow-left"></i> Back to Movies
+                        </button>
+                        <div class="song-list" id="movie-songs-list"></div>
+                    </div>
+                </section>
+
+                <!-- PLAYLISTS -->
+                <section class="view-section" id="view-playlists">
+                    <h2>📋 Playlists</h2>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+                        <button id="btn-create-playlist" class="btn-add-song" style="background:var(--cyan);padding:8px 18px;border-radius:30px;font-weight:600;font-size:0.85rem;color:#fff;display:flex;align-items:center;gap:8px;">
+                            <i class="fas fa-plus"></i> New Playlist
+                        </button>
+                    </div>
+                    <div class="playlist-grid" id="playlists-grid"></div>
+                    <div id="playlist-songs-container" style="margin-top:24px;display:none;">
+                        <button id="back-to-playlists" style="color:var(--cyan);margin-bottom:12px;font-size:0.9rem;">
+                            <i class="fas fa-arrow-left"></i> Back to Playlists
+                        </button>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                            <h3 id="playlist-view-title" style="font-size:1.2rem;font-weight:600;"></h3>
+                            <button id="btn-remove-from-playlist" style="color:var(--coral);font-size:0.85rem;display:none;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--coral-dim);">
+                                <i class="fas fa-trash-alt"></i> Remove Selected
+                            </button>
+                        </div>
+                        <div class="song-list" id="playlist-songs-list"></div>
+                    </div>
+                </section>
+
+                <!-- QUEUE -->
+                <section class="view-section" id="view-queue">
+                    <h2>⏳ My Queue</h2>
+                    <div class="song-list" id="queue-list"></div>
+                </section>
+
+                <!-- MANAGE USERS (admin) -->
+                <section class="view-section" id="view-manage-users">
+                    <h2>👥 Manage Users</h2>
+                    <p class="subhead">Create new user accounts. They'll be able to log in with these credentials.</p>
+                    <div style="max-width:400px;">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="new-user-email" placeholder="newuser@example.com" />
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="text" id="new-user-password" placeholder="••••••••" />
+                        </div>
+                        <button id="btn-create-user" class="btn-primary" style="background:linear-gradient(135deg,var(--cyan),#3bb8d6);">
+                            <i class="fas fa-user-plus"></i> Create User
+                        </button>
+                    </div>
+                    <div style="margin-top:28px;">
+                        <h4 style="color:var(--text-secondary);font-weight:500;font-size:0.9rem;margin-bottom:12px;">Existing Users</h4>
+                        <div id="users-list" style="display:flex;flex-direction:column;gap:6px;max-width:400px;"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ===== BOTTOM PLAYER BAR ===== -->
+        <div id="player-bar">
+            <div class="now-playing">
+                <div class="np-icon"><i class="fas fa-music"></i></div>
+                <div class="np-info">
+                    <div class="np-title" id="np-title">No song selected</div>
+                    <div class="np-artist" id="np-artist">—</div>
+                </div>
+            </div>
+
             <div class="player-controls">
-                <button id="btnShuffle">🔀</button>
-                <button id="btnPrev">⏮️</button>
-                <button class="btn-play-main" id="btnPlay">▶️</button>
-                <button id="btnNext">⏭️</button>
-                <button id="btnRepeat">🔁</button>
+                <button id="btn-shuffle" title="Shuffle"><i class="fas fa-random"></i></button>
+                <button id="btn-prev" title="Previous"><i class="fas fa-step-backward"></i></button>
+                <button id="btn-play" class="play-toggle" title="Play/Pause"><i class="fas fa-play"></i></button>
+                <button id="btn-next" title="Next"><i class="fas fa-step-forward"></i></button>
+                <button id="btn-repeat" title="Repeat"><i class="fas fa-redo-alt"></i></button>
             </div>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" style="width:70px; accent-color:var(--accent);">
+
+            <div class="progress-area">
+                <span class="time" id="current-time">0:00</span>
+                <div class="progress-track" id="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span class="time" id="total-time">0:00</span>
+            </div>
+
+            <div class="volume-wrap">
+                <i class="fas fa-volume-up"></i>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8" />
+            </div>
+        </div>
+
+        <!-- ===== FLOATING ADD BUTTON (mobile) ===== -->
+        <button id="fab-add" aria-label="Add song">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- ===== MODAL: ADD SONG ===== -->
+    <div class="modal-overlay" id="modal-add-song">
+        <div class="modal-sheet">
+            <div class="sheet-header">
+                <h3><i class="fas fa-plus-circle" style="color:var(--coral);"></i> Add New Song</h3>
+                <button class="close-sheet" data-modal="modal-add-song"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="add-song-form">
+                <div class="form-group">
+                    <label>Song Title</label>
+                    <input type="text" id="song-title" placeholder="Song name" required />
+                </div>
+                <div class="form-group">
+                    <label>Artist</label>
+                    <input type="text" id="song-artist" placeholder="Artist name" required />
+                </div>
+                <div class="form-group">
+                    <label>Movie / Album</label>
+                    <input type="text" id="song-movie" placeholder="Movie or album name" required />
+                </div>
+                <div class="form-group">
+                    <label>Audio URL</label>
+                    <input type="url" id="song-url" placeholder="https://example.com/song.mp3" required />
+                </div>
+                <button type="submit" class="btn-primary">Add Song</button>
+            </form>
         </div>
     </div>
-</div>
 
-<!-- Add song bottom sheet (admin only) -->
-<div class="bottom-sheet-overlay" id="addSongSheet">
-    <div class="bottom-sheet">
-        <div class="sheet-handle"></div>
-        <h3>🎵 Add Song</h3>
-        <div class="input-with-icon"><span>🎤</span><input id="inpName" placeholder="Song name"></div>
-        <div class="input-with-icon"><span>🎙️</span><input id="inpArtist" placeholder="Artist"></div>
-        <div class="input-with-icon"><span>🎬</span><input id="inpMovie" placeholder="Movie/Album"></div>
-        <div class="input-with-icon"><span>🔗</span><input id="inpUrl" placeholder="songs/filename.mp3"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button id="cancelSheetBtn" style="background:none; border:none; color:white;">Cancel</button>
-            <button class="btn-primary" id="saveSongBtn" style="width:auto;">Save</button>
+    <!-- ===== MODAL: CREATE PLAYLIST ===== -->
+    <div class="modal-overlay" id="modal-create-playlist">
+        <div class="modal-sheet">
+            <div class="sheet-header">
+                <h3><i class="fas fa-list" style="color:var(--cyan);"></i> New Playlist</h3>
+                <button class="close-sheet" data-modal="modal-create-playlist"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="create-playlist-form">
+                <div class="form-group">
+                    <label>Playlist Name</label>
+                    <input type="text" id="playlist-name" placeholder="My awesome playlist" required />
+                </div>
+                <button type="submit" class="btn-primary" style="background:linear-gradient(135deg,var(--cyan),#3bb8d6);">Create</button>
+            </form>
         </div>
     </div>
-</div>
 
-<!-- Manage users modal (admin) -->
-<div id="userModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:200;">
-    <div style="background:var(--card); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:24px; padding:24px; width:90%; max-width:400px; color:white;">
-        <h3>👥 Manage Users</h3>
-        <input type="email" id="newUserEmail" placeholder="User email" style="width:100%; padding:12px; margin:10px 0; background:var(--surface); border:1px solid var(--border); border-radius:50px; color:white;">
-        <input type="password" id="newUserPassword" placeholder="Password" style="width:100%; padding:12px; margin-bottom:12px; background:var(--surface); border:1px solid var(--border); border-radius:50px; color:white;">
-        <button class="btn-primary" id="createUserBtn" style="width:auto;">Create User</button>
-        <button style="background:none; border:none; color:white; margin-left:10px;" onclick="document.getElementById('userModal').style.display='none'">Close</button>
+    <!-- ===== MODAL: ADD TO PLAYLIST ===== -->
+    <div class="modal-overlay" id="modal-add-to-playlist">
+        <div class="modal-sheet">
+            <div class="sheet-header">
+                <h3><i class="fas fa-plus" style="color:#4ade80;"></i> Add to Playlist</h3>
+                <button class="close-sheet" data-modal="modal-add-to-playlist"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="add-to-playlist-content">
+                <p style="color:var(--text-secondary);margin-bottom:16px;">Select a playlist to add this song to:</p>
+                <div id="add-to-playlist-options" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+        </div>
     </div>
-</div>
 
-<audio id="audio" preload="auto"></audio>
 
-<script>
-// ========== CONFIG ==========
-const API_URL = 'https://script.google.com/macros/s/AKfycbzygXoA0-7cZdDSbnfEUkdN5j5nikVwsjA2B9UPmkkCXAmvXDiFA0I0j13gHoiVPdGC7A/exec'; // ← PASTE YOUR DEPLOYMENT URL
+    <script>
+        // ============================================================
+        //  CONFIGURATION
+        // ============================================================
+        // ✅ Your Google Apps Script URL is inserted here
+        const API_URL = 'https://script.google.com/macros/s/AKfycbytL0jpSuqyn-r5qJ9C03nwuCp8YjOSZQHKA8kL8hR8BxwExf1c7BYqPzKPC93afk3Rag/exec';
 
-// ========== GLOBALS ==========
-let currentUser = null; // { email, role }
-let songs = [];
-let playlists = [];
-let queue = [];
-let currentSongId = null;
-let isPlaying = false;
-let shuffle = false;
-let repeat = 'none';
-let currentView = 'library';
-let currentMovie = null;
-let currentPlaylistId = null;
+        // ============================================================
+        //  STATE
+        // ============================================================
+        const state = {
+            user: null, // { email, role }
+            songs: [],
+            playlists: [],
+            queue: [], // song IDs for current user
+            users: [],
+            currentView: 'library',
+            // player
+            currentSongId: null,
+            currentIndex: -1,
+            isPlaying: false,
+            shuffle: false,
+            repeat: 'none', // 'none' | 'all' | 'one'
+            volume: 0.8,
+            audio: new Audio(),
+            queueOrder: [], // ordered list of song IDs for playback
+            queueIndex: -1,
+            // temp
+            selectedMovie: null,
+            selectedPlaylistId: null,
+            playlistRemoveMode: false,
+        };
 
-// ========== LOGIN ==========
-document.getElementById('loginBtn').addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    if (!email || !password) return;
-    try {
-        const res = await fetch(API_URL + '?action=login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (data.error) {
-            document.getElementById('loginError').style.display = 'block';
-            return;
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
+        const loginScreen = $('#login-screen');
+        const loginForm = $('#login-form');
+        const loginEmail = $('#login-email');
+        const loginPassword = $('#login-password');
+        const loginError = $('#login-error');
+        const app = $('#app');
+        const sidebar = $('#sidebar');
+        const sidebarToggle = $('#sidebar-toggle');
+        const sidebarOverlay = $('#sidebar-overlay');
+        const sidebarEmail = $('#sidebar-email');
+        const sidebarRole = $('#sidebar-role');
+        const navLinks = $$('.nav-list a[data-view]');
+        const logoutLink = $('#logout-link');
+        const searchInput = $('#search-input');
+        const contentBody = $('#content-body');
+
+        // views
+        const viewLibrary = $('#view-library');
+        const viewMovies = $('#view-movies');
+        const viewPlaylists = $('#view-playlists');
+        const viewQueue = $('#view-queue');
+        const viewManageUsers = $('#view-manage-users');
+
+        // library
+        const libraryList = $('#library-list');
+
+        // movies
+        const moviesGrid = $('#movies-grid');
+        const movieSongsContainer = $('#movie-songs-container');
+        const movieSongsList = $('#movie-songs-list');
+        const backToMovies = $('#back-to-movies');
+
+        // playlists
+        const playlistsGrid = $('#playlists-grid');
+        const playlistSongsContainer = $('#playlist-songs-container');
+        const playlistSongsList = $('#playlist-songs-list');
+        const backToPlaylists = $('#back-to-playlists');
+        const playlistViewTitle = $('#playlist-view-title');
+        const btnRemoveFromPlaylist = $('#btn-remove-from-playlist');
+        const btnCreatePlaylist = $('#btn-create-playlist');
+
+        // queue
+        const queueList = $('#queue-list');
+
+        // manage users
+        const usersList = $('#users-list');
+        const newUserEmail = $('#new-user-email');
+        const newUserPassword = $('#new-user-password');
+        const btnCreateUser = $('#btn-create-user');
+
+        // modals
+        const modalAddSong = $('#modal-add-song');
+        const modalCreatePlaylist = $('#modal-create-playlist');
+        const modalAddToPlaylist = $('#modal-add-to-playlist');
+        const addToPlaylistOptions = $('#add-to-playlist-options');
+        const addSongForm = $('#add-song-form');
+        const createPlaylistForm = $('#create-playlist-form');
+        const btnAddSongDesktop = $('#btn-add-song-desktop');
+        const fabAdd = $('#fab-add');
+        const navManageUsers = $('#nav-manage-users');
+
+        // player
+        const npTitle = $('#np-title');
+        const npArtist = $('#np-artist');
+        const btnPlay = $('#btn-play');
+        const btnPrev = $('#btn-prev');
+        const btnNext = $('#btn-next');
+        const btnShuffle = $('#btn-shuffle');
+        const btnRepeat = $('#btn-repeat');
+        const progressFill = $('#progress-fill');
+        const progressTrack = $('#progress-track');
+        const currentTimeEl = $('#current-time');
+        const totalTimeEl = $('#total-time');
+        const volumeSlider = $('#volume-slider');
+
+        // ============================================================
+        //  TOAST SYSTEM
+        // ============================================================
+        function toast(message, type = 'info') {
+            const container = $('#toast-container');
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            const iconMap = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            el.innerHTML = `<i class="fas ${iconMap[type] || iconMap.info}"></i> ${message}`;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.classList.add('out');
+                setTimeout(() => el.remove(), 300);
+            }, 2800);
         }
-        // Success
-        currentUser = data;
-        sessionStorage.setItem('melodify_user', JSON.stringify(currentUser));
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'flex';
-        initApp();
-    } catch (e) {
-        document.getElementById('loginError').style.display = 'block';
-    }
-});
 
-async function initApp() {
-    // Set up UI based on role
-    const isAdmin = currentUser.role === 'admin';
-    document.getElementById('fabAdd').style.display = isAdmin ? 'flex' : 'none';
-    document.getElementById('desktopAddBtn').style.display = isAdmin ? 'flex' : 'none';
-    document.getElementById('btnNewPlaylist').style.display = isAdmin ? 'block' : 'none';
-    document.getElementById('btnManageUsers').style.display = isAdmin ? 'block' : 'none';
+        // ============================================================
+        //  API HELPERS
+        // ============================================================
+        async function apiGet(action, params = {}) {
+            const qs = new URLSearchParams({ action, ...params }).toString();
+            const res = await fetch(`${API_URL}?${qs}`);
+            return res.json();
+        }
 
-    await loadAllData();
-    updateUI();
-    // Attach event listeners (they are set once)
-    attachEventListeners();
-}
+        async function apiPost(action, body = {}) {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, ...body })
+            });
+            return res.json();
+        }
 
-async function loadAllData() {
-    try {
-        const [songsData, playlistsData, queueData] = await Promise.all([
-            fetchAPI('listSongs'),
-            fetchAPI('listPlaylists'),
-            fetchAPI('getQueue', { email: currentUser.email })
-        ]);
-        songs = songsData;
-        playlists = playlistsData;
-        queue = queueData;
-    } catch(e) {
-        showToast('Failed to load data');
-    }
-}
+        // ============================================================
+        //  AUTH
+        // ============================================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            if (!email || !password) {
+                loginError.textContent = 'Please enter email and password.';
+                return;
+            }
+            loginError.textContent = '';
+            try {
+                const res = await apiGet('login', { email, password });
+                if (res.success) {
+                    state.user = { email: res.email, role: res.role };
+                    sessionStorage.setItem('melodify_user', JSON.stringify(state.user));
+                    loginScreen.classList.add('hidden');
+                    app.classList.add('active');
+                    initApp();
+                } else {
+                    loginError.textContent = res.error || 'Invalid credentials.';
+                }
+            } catch (err) {
+                loginError.textContent = 'Network error. Please try again.';
+                console.error(err);
+            }
+        }
 
-async function fetchAPI(action, params = null) {
-    const url = new URL(API_URL);
-    url.searchParams.set('action', action);
-    // Add user email for per-user actions
-    if (action === 'getQueue' || action === 'updateQueue') {
-        url.searchParams.set('email', currentUser.email);
-    }
-    const options = {};
-    if (params && action !== 'listSongs' && action !== 'listPlaylists' && action !== 'getQueue' && action !== 'listUsers') {
-        options.method = 'POST';
-        options.body = JSON.stringify(params);
-    } else if (action === 'listUsers') {
-        // nothing extra
-    }
-    const res = await fetch(url.toString(), options);
-    return res.json();
-}
+        function checkSession() {
+            const stored = sessionStorage.getItem('melodify_user');
+            if (stored) {
+                try {
+                    const user = JSON.parse(stored);
+                    state.user = user;
+                    loginScreen.classList.add('hidden');
+                    app.classList.add('active');
+                    initApp();
+                    return true;
+                } catch (_) { /* ignore */ }
+            }
+            return false;
+        }
 
-// ... (The rest of the code includes the full UI logic, audio player, song actions, playlist management, queue management, user management, and error handling. Due to length, I'm summarizing here but will provide the complete file in the final answer.)
+        function logout() {
+            sessionStorage.removeItem('melodify_user');
+            state.user = null;
+            state.audio.pause();
+            app.classList.remove('active');
+            loginScreen.classList.remove('hidden');
+            loginEmail.value = '';
+            loginPassword.value = '';
+            loginError.textContent = '';
+        }
 
-// Placeholder for remaining essential functions: render, playSong, togglePlay, nextTrack, seek, playlist functions, queue functions, admin user creation, etc.
-// The full code will be in the final downloadable HTML.
-</script>
+        // ============================================================
+        //  INIT APP
+        // ============================================================
+        async function initApp() {
+            if (!state.user) return;
+            sidebarEmail.textContent = state.user.email;
+            const roleEl = sidebarRole;
+            roleEl.textContent = state.user.role;
+            roleEl.className = `role ${state.user.role === 'admin' ? 'admin' : ''}`;
+
+            // Show admin nav items
+            const isAdmin = state.user.role === 'admin';
+            navManageUsers.style.display = isAdmin ? 'block' : 'none';
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = isAdmin ? 'block' : 'none';
+            });
+
+            await fetchAllData();
+            renderCurrentView();
+            setupPlayer();
+            setupEventListeners();
+        }
+
+        // ============================================================
+        //  FETCH DATA
+        // ============================================================
+        async function fetchAllData() {
+            try {
+                const [songsRes, playlistsRes, queueRes, usersRes] = await Promise.all([
+                    apiGet('listSongs'),
+                    apiGet('listPlaylists'),
+                    apiGet('getQueue', { email: state.user.email }),
+                    state.user.role === 'admin' ? apiGet('listUsers') : Promise.resolve({ users: [] })
+                ]);
+
+                state.songs = songsRes.songs || [];
+                state.playlists = playlistsRes.playlists || [];
+                state.queue = queueRes.queue || [];
+                state.users = usersRes.users || [];
+
+                // Build queue order for player
+                rebuildQueueOrder();
+
+                // Render UI
+                renderAll();
+            } catch (err) {
+                console.error('Fetch error:', err);
+                toast('Failed to load data. Please refresh.', 'error');
+            }
+        }
+
+        function rebuildQueueOrder() {
+            // start with queue, then add rest
+            const queueIds = state.queue || [];
+            const allIds = state.songs.map(s => s.id);
+            const remaining = allIds.filter(id => !queueIds.includes(id));
+            state.queueOrder = [...queueIds, ...remaining];
+            // find current index
+            if (state.currentSongId) {
+                state.queueIndex = state.queueOrder.indexOf(state.currentSongId);
+            } else {
+                state.queueIndex = -1;
+            }
+        }
+
+        // ============================================================
+        //  RENDER
+        // ============================================================
+        function renderAll() {
+            renderLibrary();
+            renderMovies();
+            renderPlaylists();
+            renderQueue();
+            if (state.user.role === 'admin') renderUsers();
+            updatePlayerUI();
+        }
+
+        function getFilteredSongs(list) {
+            const q = searchInput.value.toLowerCase().trim();
+            if (!q) return list;
+            return list.filter(s =>
+                s.name.toLowerCase().includes(q) ||
+                s.artist.toLowerCase().includes(q) ||
+                s.movie.toLowerCase().includes(q)
+            );
+        }
+
+        function renderLibrary() {
+            const filtered = getFilteredSongs(state.songs);
+            if (filtered.length === 0) {
+                libraryList.innerHTML =
+                    `<div class="empty-state"><i class="fas fa-music"></i><p>${state.songs.length === 0 ? 'No songs yet. Admin can add some!' : 'No matches found.'}</p></div>`;
+                return;
+            }
+            libraryList.innerHTML = filtered.map((s, i) => songRowHTML(s, i, false)).join('');
+        }
+
+        function songRowHTML(song, idx, showRemoveQueue = false) {
+            const isCurrent = state.currentSongId === song.id;
+            const isAdmin = state.user.role === 'admin';
+            const inQueue = state.queue.includes(song.id);
+            return `
+            <div class="song-row ${isCurrent ? 'current' : ''}" data-id="${song.id}">
+              <span class="idx">${idx + 1}</span>
+              <span class="s-name">${esc(song.name)}</span>
+              <span class="s-artist">${esc(song.artist)}</span>
+              <span class="s-movie">${esc(song.movie)}</span>
+              <div class="s-actions">
+                <button class="play-btn" title="Play"><i class="fas fa-play"></i></button>
+                ${!showRemoveQueue ? `<button class="queue-btn" title="${inQueue ? 'Already in queue' : 'Add to queue'}"><i class="fas ${inQueue ? 'fa-check' : 'fa-plus'}"></i></button>` : ''}
+                ${showRemoveQueue ? `<button class="remove-queue-btn" title="Remove from queue"><i class="fas fa-times"></i></button>` : ''}
+                ${isAdmin ? `<button class="playlist-add-btn" title="Add to playlist"><i class="fas fa-list"></i></button>` : ''}
+                ${isAdmin ? `<button class="del-btn" title="Delete song"><i class="fas fa-trash-alt"></i></button>` : ''}
+              </div>
+            </div>
+          `;
+        }
+
+        function renderMovies() {
+            const movieMap = {};
+            state.songs.forEach(s => {
+                if (!movieMap[s.movie]) movieMap[s.movie] = [];
+                movieMap[s.movie].push(s);
+            });
+            const movies = Object.keys(movieMap).sort();
+            if (movies.length === 0) {
+                moviesGrid.innerHTML =
+                `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-film"></i><p>No movies yet.</p></div>`;
+                return;
+            }
+            moviesGrid.innerHTML = movies.map(m => `
+            <div class="movie-card" data-movie="${esc(m)}">
+              <i class="fas fa-compact-disc"></i>
+              <div class="m-title">${esc(m)}</div>
+              <div class="m-count">${movieMap[m].length} song${movieMap[m].length > 1 ? 's' : ''}</div>
+            </div>
+          `).join('');
+            moviesGrid.querySelectorAll('.movie-card').forEach(el => {
+                el.addEventListener('click', () => showMovieSongs(el.dataset.movie));
+            });
+        }
+
+        function showMovieSongs(movie) {
+            const songs = state.songs.filter(s => s.movie === movie);
+            movieSongsContainer.style.display = 'block';
+            moviesGrid.style.display = 'none';
+            movieSongsList.innerHTML = songs.map((s, i) => songRowHTML(s, i, false)).join('');
+            // scroll to top of container
+            movieSongsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderPlaylists() {
+            if (state.playlists.length === 0) {
+                playlistsGrid.innerHTML =
+                    `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-list-ul"></i><p>No playlists yet. Create one!</p></div>`;
+                return;
+            }
+            const isAdmin = state.user.role === 'admin';
+            playlistsGrid.innerHTML = state.playlists.map(p => {
+                const count = p.songIds ? p.songIds.length : 0;
+                return `
+              <div class="playlist-card" data-id="${p.id}">
+                <div class="pl-info">
+                  <i class="fas fa-headphones"></i>
+                  <div>
+                    <div class="pl-name">${esc(p.name)}</div>
+                    <div class="pl-count">${count} song${count !== 1 ? 's' : ''}</div>
+                  </div>
+                </div>
+                <div class="pl-actions">
+                  ${isAdmin ? `<button class="del-pl-btn" title="Delete playlist"><i class="fas fa-trash-alt"></i></button>` : ''}
+                </div>
+              </div>
+            `;
+            }).join('');
+            playlistsGrid.querySelectorAll('.playlist-card').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    if (e.target.closest('.del-pl-btn')) return;
+                    showPlaylistSongs(el.dataset.id);
+                });
+                const delBtn = el.querySelector('.del-pl-btn');
+                if (delBtn) {
+                    delBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deletePlaylist(el.dataset.id);
+                    });
+                }
+            });
+        }
+
+        function showPlaylistSongs(playlistId) {
+            const pl = state.playlists.find(p => p.id === playlistId);
+            if (!pl) return;
+            state.selectedPlaylistId = playlistId;
+            const songIds = pl.songIds || [];
+            const songs = state.songs.filter(s => songIds.includes(s.id));
+            playlistSongsContainer.style.display = 'block';
+            playlistsGrid.style.display = 'none';
+            playlistViewTitle.textContent = `🎵 ${esc(pl.name)}`;
+            const isAdmin = state.user.role === 'admin';
+            btnRemoveFromPlaylist.style.display = isAdmin && songs.length > 0 ? 'flex' : 'none';
+            if (songs.length === 0) {
+                playlistSongsList.innerHTML =
+                    `<div class="empty-state"><i class="fas fa-music"></i><p>This playlist is empty.</p></div>`;
+                return;
+            }
+            playlistSongsList.innerHTML = songs.map((s, i) => {
+                const isCurrent = state.currentSongId === s.id;
+                return `
+              <div class="song-row ${isCurrent ? 'current' : ''}" data-id="${s.id}">
+                <span class="idx">${i + 1}</span>
+                <span class="s-name">${esc(s.name)}</span>
+                <span class="s-artist">${esc(s.artist)}</span>
+                <span class="s-movie">${esc(s.movie)}</span>
+                <div class="s-actions">
+                  <button class="play-btn" title="Play"><i class="fas fa-play"></i></button>
+                  ${isAdmin ? `<button class="remove-pl-song-btn" title="Remove from playlist"><i class="fas fa-times"></i></button>` : ''}
+                </div>
+              </div>
+            `;
+            }).join('');
+            // wire up remove from playlist buttons
+            if (isAdmin) {
+                playlistSongsList.querySelectorAll('.remove-pl-song-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const row = btn.closest('.song-row');
+                        const songId = row.dataset.id;
+                        removeSongFromPlaylist(playlistId, songId);
+                    });
+                });
+            }
+            // wire up play buttons
+            playlistSongsList.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const row = btn.closest('.song-row');
+                    const songId = row.dataset.id;
+                    playSongById(songId);
+                });
+            });
+        }
+
+        function renderQueue() {
+            const queueSongs = state.queue.map(id => state.songs.find(s => s.id === id)).filter(Boolean);
+            if (queueSongs.length === 0) {
+                queueList.innerHTML =
+                    `<div class="empty-state"><i class="fas fa-clock"></i><p>Your queue is empty. Add songs from the library!</p></div>`;
+                return;
+            }
+            queueList.innerHTML = queueSongs.map((s, i) => songRowHTML(s, i, true)).join('');
+            queueList.querySelectorAll('.remove-queue-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const row = btn.closest('.song-row');
+                    const songId = row.dataset.id;
+                    removeFromQueue(songId);
+                });
+            });
+            queueList.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const row = btn.closest('.song-row');
+                    const songId = row.dataset.id;
+                    playSongById(songId);
+                });
+            });
+        }
+
+        function renderUsers() {
+            if (state.user.role !== 'admin') return;
+            if (state.users.length === 0) {
+                usersList.innerHTML = `<span style="color:var(--text-secondary);font-size:0.9rem;">No users yet.</span>`;
+                return;
+            }
+            usersList.innerHTML = state.users.map(u =>
+                `<div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border-glass);">
+              <span>${esc(u.email)}</span>
+              <span style="color:var(--text-muted);font-size:0.8rem;">${u.email === state.user.email ? ' (you)' : ''}</span>
+            </div>`
+            ).join('');
+        }
+
+        // ============================================================
+        //  VIEW SWITCHING
+        // ============================================================
+        function switchView(view) {
+            state.currentView = view;
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const map = {
+                library: viewLibrary,
+                movies: viewMovies,
+                playlists: viewPlaylists,
+                queue: viewQueue,
+                'manage-users': viewManageUsers,
+            };
+            if (map[view]) map[view].classList.add('active');
+
+            navLinks.forEach(a => {
+                a.classList.toggle('active', a.dataset.view === view);
+            });
+
+            // Reset movie/playlist drill-in
+            if (view !== 'movies') {
+                movieSongsContainer.style.display = 'none';
+                moviesGrid.style.display = 'grid';
+            }
+            if (view !== 'playlists') {
+                playlistSongsContainer.style.display = 'none';
+                playlistsGrid.style.display = 'grid';
+            }
+            // Close mobile sidebar
+            closeSidebar();
+            // Re-render the view content
+            if (view === 'library') renderLibrary();
+            if (view === 'movies') renderMovies();
+            if (view === 'playlists') renderPlaylists();
+            if (view === 'queue') renderQueue();
+            if (view === 'manage-users' && state.user.role === 'admin') renderUsers();
+            // Reset search
+            searchInput.value = '';
+        }
+
+        // ============================================================
+        //  PLAYER
+        // ============================================================
+        function setupPlayer() {
+            const audio = state.audio;
+            audio.volume = state.volume;
+            volumeSlider.value = state.volume;
+
+            audio.addEventListener('timeupdate', updateProgress);
+            audio.addEventListener('loadedmetadata', () => {
+                totalTimeEl.textContent = formatTime(audio.duration);
+            });
+            audio.addEventListener('ended', handleSongEnd);
+            audio.addEventListener('play', () => {
+                state.isPlaying = true;
+                btnPlay.innerHTML = '<i class="fas fa-pause"></i>';
+            });
+            audio.addEventListener('pause', () => {
+                state.isPlaying = false;
+                btnPlay.innerHTML = '<i class="fas fa-play"></i>';
+            });
+            audio.addEventListener('error', () => {
+                toast('Error playing audio. Check the URL.', 'error');
+            });
+        }
+
+        function playSongById(id, fromIndex = -1) {
+            const song = state.songs.find(s => s.id === id);
+            if (!song) {
+                toast('Song not found.', 'error');
+                return;
+            }
+            state.currentSongId = id;
+            state.audio.src = song.url;
+            state.audio.load();
+            state.audio.play().catch(() => {
+                toast('Cannot play this audio. Check the URL.', 'error');
+            });
+            npTitle.textContent = song.name;
+            npArtist.textContent = `${song.artist} • ${song.movie}`;
+            // Update index
+            if (fromIndex >= 0) {
+                state.queueIndex = fromIndex;
+            } else {
+                state.queueIndex = state.queueOrder.indexOf(id);
+            }
+            updatePlayerUI();
+            renderAll(); // refresh highlights
+        }
+
+        function togglePlay() {
+            if (!state.currentSongId) {
+                // play first song from queue or library
+                const first = state.queueOrder.length > 0 ? state.queueOrder[0] : null;
+                if (first) {
+                    playSongById(first, 0);
+                } else {
+                    toast('No songs available.', 'info');
+                }
+                return;
+            }
+            if (state.audio.paused) {
+                state.audio.play().catch(() => {});
+            } else {
+                state.audio.pause();
+            }
+        }
+
+        function playNext() {
+            if (state.shuffle) {
+                // pick random from queueOrder
+                const available = state.queueOrder.filter(id => id !== state.currentSongId);
+                if (available.length === 0) return;
+                const randomId = available[Math.floor(Math.random() * available.length)];
+                playSongById(randomId);
+                return;
+            }
+            if (state.queueIndex < 0 || state.queueIndex >= state.queueOrder.length - 1) {
+                // loop back if repeat all
+                if (state.repeat === 'all' && state.queueOrder.length > 0) {
+                    playSongById(state.queueOrder[0], 0);
+                }
+                return;
+            }
+            const nextId = state.queueOrder[state.queueIndex + 1];
+            playSongById(nextId, state.queueIndex + 1);
+        }
+
+        function playPrev() {
+            if (state.queueIndex > 0) {
+                const prevId = state.queueOrder[state.queueIndex - 1];
+                playSongById(prevId, state.queueIndex - 1);
+            } else if (state.queueOrder.length > 0 && state.repeat === 'all') {
+                playSongById(state.queueOrder[state.queueOrder.length - 1], state.queueOrder.length - 1);
+            }
+        }
+
+        function handleSongEnd() {
+            if (state.repeat === 'one') {
+                state.audio.currentTime = 0;
+                state.audio.play().catch(() => {});
+                return;
+            }
+            playNext();
+        }
+
+        function updateProgress() {
+            const audio = state.audio;
+            if (audio.duration) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                progressFill.style.width = `${pct}%`;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            }
+        }
+
+        function formatTime(sec) {
+            if (!sec || isNaN(sec)) return '0:00';
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function updatePlayerUI() {
+            const song = state.songs.find(s => s.id === state.currentSongId);
+            if (song) {
+                npTitle.textContent = song.name;
+                npArtist.textContent = `${song.artist} • ${song.movie}`;
+            } else {
+                npTitle.textContent = 'No song selected';
+                npArtist.textContent = '—';
+            }
+            btnPlay.innerHTML = state.isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+            btnShuffle.classList.toggle('active', state.shuffle);
+            const repeatIcons = { none: 'fa-redo-alt', all: 'fa-redo-alt', one: 'fa-redo-alt' };
+            btnRepeat.innerHTML = `<i class="fas ${repeatIcons[state.repeat] || 'fa-redo-alt'}"></i>`;
+            btnRepeat.classList.toggle('active', state.repeat !== 'none');
+            // volume
+            volumeSlider.value = state.volume;
+            state.audio.volume = state.volume;
+        }
+
+        function seekTo(e) {
+            const rect = progressTrack.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            const dur = state.audio.duration;
+            if (dur && isFinite(dur)) {
+                state.audio.currentTime = pct * dur;
+            }
+        }
+
+        // ============================================================
+        //  QUEUE OPERATIONS
+        // ============================================================
+        async function addToQueue(songId) {
+            if (state.queue.includes(songId)) {
+                toast('Already in queue.', 'info');
+                return;
+            }
+            const newQueue = [...state.queue, songId];
+            try {
+                const res = await apiPost('updateQueue', { email: state.user.email, queue: newQueue });
+                if (res.success) {
+                    state.queue = newQueue;
+                    rebuildQueueOrder();
+                    renderQueue();
+                    toast('Added to queue.', 'success');
+                } else {
+                    toast(res.error || 'Failed to update queue.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        async function removeFromQueue(songId) {
+            const newQueue = state.queue.filter(id => id !== songId);
+            try {
+                const res = await apiPost('updateQueue', { email: state.user.email, queue: newQueue });
+                if (res.success) {
+                    state.queue = newQueue;
+                    rebuildQueueOrder();
+                    renderQueue();
+                    toast('Removed from queue.', 'success');
+                } else {
+                    toast(res.error || 'Failed to update queue.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  PLAYLIST OPERATIONS (admin only)
+        // ============================================================
+        async function createPlaylist(name) {
+            try {
+                const res = await apiPost('addPlaylist', { name });
+                if (res.success) {
+                    await fetchAllData();
+                    renderAll();
+                    toast('Playlist created!', 'success');
+                } else {
+                    toast(res.error || 'Failed to create playlist.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        async function deletePlaylist(id) {
+            if (!confirm('Delete this playlist?')) return;
+            try {
+                const res = await apiPost('deletePlaylist', { id });
+                if (res.success) {
+                    await fetchAllData();
+                    renderAll();
+                    toast('Playlist deleted.', 'success');
+                } else {
+                    toast(res.error || 'Failed to delete playlist.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        async function addSongToPlaylist(playlistId, songId) {
+            try {
+                const res = await apiPost('addToPlaylist', { playlistId, songId });
+                if (res.success) {
+                    await fetchAllData();
+                    renderAll();
+                    toast('Added to playlist!', 'success');
+                } else {
+                    toast(res.error || 'Failed to add to playlist.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        async function removeSongFromPlaylist(playlistId, songId) {
+            try {
+                const res = await apiPost('removeFromPlaylist', { playlistId, songId });
+                if (res.success) {
+                    await fetchAllData();
+                    renderAll();
+                    toast('Removed from playlist.', 'success');
+                } else {
+                    toast(res.error || 'Failed to remove from playlist.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  SONG CRUD (admin only)
+        // ============================================================
+        async function addSong(name, artist, movie, url) {
+            try {
+                const res = await apiPost('addSong', { name, artist, movie, url });
+                if (res.success) {
+                    await fetchAllData();
+                    renderAll();
+                    toast('Song added!', 'success');
+                    return true;
+                } else {
+                    toast(res.error || 'Failed to add song.', 'error');
+                    return false;
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+                return false;
+            }
+        }
+
+        async function deleteSong(id) {
+            if (!confirm('Delete this song?')) return;
+            try {
+                const res = await apiPost('deleteSong', { id });
+                if (res.success) {
+                    await fetchAllData();
+                    renderAll();
+                    toast('Song deleted.', 'success');
+                } else {
+                    toast(res.error || 'Failed to delete song.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  USER MANAGEMENT (admin only)
+        // ============================================================
+        async function createUser(email, password) {
+            try {
+                const res = await apiPost('addUser', { email, password });
+                if (res.success) {
+                    await fetchAllData();
+                    renderUsers();
+                    toast('User created!', 'success');
+                    newUserEmail.value = '';
+                    newUserPassword.value = '';
+                } else {
+                    toast(res.error || 'Failed to create user.', 'error');
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  HELPERS
+        // ============================================================
+        function esc(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // ============================================================
+        //  EVENT LISTENERS
+        // ============================================================
+        function setupEventListeners() {
+            // Login
+            loginForm.addEventListener('submit', handleLogin);
+
+            // Logout
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+
+            // Sidebar toggle
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('active');
+            });
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Nav links
+            navLinks.forEach(a => {
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const view = a.dataset.view;
+                    if (view) switchView(view);
+                });
+            });
+
+            // Search
+            searchInput.addEventListener('input', () => {
+                if (state.currentView === 'library') renderLibrary();
+                else if (state.currentView === 'movies') renderMovies();
+                else if (state.currentView === 'playlists') renderPlaylists();
+                else if (state.currentView === 'queue') renderQueue();
+            });
+
+            // Back buttons
+            backToMovies.addEventListener('click', () => {
+                movieSongsContainer.style.display = 'none';
+                moviesGrid.style.display = 'grid';
+            });
+            backToPlaylists.addEventListener('click', () => {
+                playlistSongsContainer.style.display = 'none';
+                playlistsGrid.style.display = 'grid';
+            });
+
+            // Add song
+            btnAddSongDesktop.addEventListener('click', () => openModal('modal-add-song'));
+            fabAdd.addEventListener('click', () => openModal('modal-add-song'));
+
+            // Add song form
+            addSongForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = $('#song-title').value.trim();
+                const artist = $('#song-artist').value.trim();
+                const movie = $('#song-movie').value.trim();
+                const url = $('#song-url').value.trim();
+                if (!name || !artist || !movie || !url) {
+                    toast('Please fill in all fields.', 'error');
+                    return;
+                }
+                const ok = await addSong(name, artist, movie, url);
+                if (ok) {
+                    closeModal('modal-add-song');
+                    addSongForm.reset();
+                }
+            });
+
+            // Create playlist
+            btnCreatePlaylist.addEventListener('click', () => openModal('modal-create-playlist'));
+            createPlaylistForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = $('#playlist-name').value.trim();
+                if (!name) { toast('Please enter a name.', 'error'); return; }
+                await createPlaylist(name);
+                closeModal('modal-create-playlist');
+                createPlaylistForm.reset();
+            });
+
+            // Create user (admin)
+            btnCreateUser.addEventListener('click', async () => {
+                const email = newUserEmail.value.trim();
+                const password = newUserPassword.value.trim();
+                if (!email || !password) {
+                    toast('Please enter email and password.', 'error');
+                    return;
+                }
+                await createUser(email, password);
+            });
+
+            // Modals close
+            document.querySelectorAll('.close-sheet').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    closeModal(btn.dataset.modal);
+                });
+            });
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeModal(overlay.id);
+                });
+            });
+
+            // Player controls
+            btnPlay.addEventListener('click', togglePlay);
+            btnNext.addEventListener('click', playNext);
+            btnPrev.addEventListener('click', playPrev);
+            btnShuffle.addEventListener('click', () => {
+                state.shuffle = !state.shuffle;
+                updatePlayerUI();
+                toast(state.shuffle ? 'Shuffle on' : 'Shuffle off', 'info');
+            });
+            btnRepeat.addEventListener('click', () => {
+                const modes = ['none', 'all', 'one'];
+                const idx = modes.indexOf(state.repeat);
+                state.repeat = modes[(idx + 1) % modes.length];
+                updatePlayerUI();
+                const labels = { none: 'Repeat off', all: 'Repeat all', one: 'Repeat one' };
+                toast(labels[state.repeat], 'info');
+            });
+
+            // Progress seek
+            progressTrack.addEventListener('click', seekTo);
+            // drag
+            let dragging = false;
+            progressTrack.addEventListener('mousedown', () => { dragging = true; });
+            document.addEventListener('mousemove', (e) => {
+                if (dragging) seekTo(e);
+            });
+            document.addEventListener('mouseup', () => { dragging = false; });
+
+            // Volume
+            volumeSlider.addEventListener('input', () => {
+                state.volume = parseFloat(volumeSlider.value);
+                state.audio.volume = state.volume;
+            });
+
+            // Library action delegation
+            libraryList.addEventListener('click', handleSongAction);
+            queueList.addEventListener('click', handleSongAction);
+            movieSongsList.addEventListener('click', handleSongAction);
+            playlistSongsList.addEventListener('click', handleSongAction);
+
+            // Add to playlist modal - dynamic
+            document.addEventListener('click', async (e) => {
+                const btn = e.target.closest('.playlist-add-btn');
+                if (btn) {
+                    const row = btn.closest('.song-row');
+                    const songId = row.dataset.id;
+                    await showAddToPlaylistModal(songId);
+                }
+            });
+        }
+
+        // ============================================================
+        //  SONG ACTION HANDLER (delegated)
+        // ============================================================
+        function handleSongAction(e) {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const row = btn.closest('.song-row');
+            if (!row) return;
+            const songId = row.dataset.id;
+            const song = state.songs.find(s => s.id === songId);
+            if (!song) return;
+
+            if (btn.classList.contains('play-btn')) {
+                playSongById(songId);
+            } else if (btn.classList.contains('queue-btn')) {
+                addToQueue(songId);
+            } else if (btn.classList.contains('remove-queue-btn')) {
+                removeFromQueue(songId);
+            } else if (btn.classList.contains('del-btn')) {
+                deleteSong(songId);
+            } else if (btn.classList.contains('playlist-add-btn')) {
+                // handled by separate listener
+            } else if (btn.classList.contains('remove-pl-song-btn')) {
+                // handled separately
+            }
+        }
+
+        // ============================================================
+        //  ADD TO PLAYLIST MODAL
+        // ============================================================
+        async function showAddToPlaylistModal(songId) {
+            if (state.user.role !== 'admin') {
+                toast('Only admin can add to playlists.', 'error');
+                return;
+            }
+            // refresh playlists
+            await fetchAllData();
+            const options = addToPlaylistOptions;
+            if (state.playlists.length === 0) {
+                options.innerHTML = `<p style="color:var(--text-secondary);">No playlists yet. Create one first.</p>`;
+            } else {
+                options.innerHTML = state.playlists.map(p => `
+              <button class="pl-option-btn" data-playlist-id="${p.id}" data-song-id="${songId}" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--bg-card);border-radius:var(--radius-sm);border:1px solid var(--border-glass);transition:var(--transition);width:100%;">
+                <span>${esc(p.name)}</span>
+                <span style="color:var(--text-secondary);font-size:0.8rem;">${(p.songIds || []).length} songs</span>
+              </button>
+            `).join('');
+                options.querySelectorAll('.pl-option-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const pid = btn.dataset.playlistId;
+                        const sid = btn.dataset.songId;
+                        addSongToPlaylist(pid, sid);
+                        closeModal('modal-add-to-playlist');
+                    });
+                });
+            }
+            openModal('modal-add-to-playlist');
+        }
+
+        // ============================================================
+        //  KEYBOARD SHORTCUTS
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === ' ' || e.key === 'Space') {
+                e.preventDefault();
+                togglePlay();
+            }
+            if (e.key === 'ArrowRight' && e.ctrlKey) {
+                e.preventDefault();
+                playNext();
+            }
+            if (e.key === 'ArrowLeft' && e.ctrlKey) {
+                e.preventDefault();
+                playPrev();
+            }
+        });
+
+        // ============================================================
+        //  BOOT
+        // ============================================================
+        if (!checkSession()) {
+            // show login
+            loginScreen.classList.remove('hidden');
+            app.classList.remove('active');
+        }
+
+        // If API_URL is still placeholder, warn (now it's replaced, so no warning)
+        if (API_URL === 'YOUR_SCRIPT_URL_HERE') {
+            console.warn('⚠️ Please set API_URL to your Google Apps Script Web App URL.');
+        }
+
+        console.log('🎵 Melodify loaded.');
+    </script>
+
 </body>
 </html>
