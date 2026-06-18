@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Melodify — Stream Your Vibe</title>
-    <!-- Google Font for clean typography -->
+    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-    <!-- Font Awesome 6 for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
         /* ===== RESET & BASE ===== */
@@ -1480,7 +1480,6 @@
         </div>
     </div>
 
-
     <script>
         // ============================================================
         //  CONFIGURATION – UPDATED WITH YOUR NEW URL
@@ -1491,23 +1490,21 @@
         //  STATE
         // ============================================================
         const state = {
-            user: null, // { email, role }
+            user: null,
             songs: [],
             playlists: [],
-            queue: [], // song IDs for current user
+            queue: [],
             users: [],
             currentView: 'library',
-            // player
             currentSongId: null,
             currentIndex: -1,
             isPlaying: false,
             shuffle: false,
-            repeat: 'none', // 'none' | 'all' | 'one'
+            repeat: 'none',
             volume: 0.8,
             audio: new Audio(),
-            queueOrder: [], // ordered list of song IDs for playback
+            queueOrder: [],
             queueIndex: -1,
-            // temp
             selectedMovie: null,
             selectedPlaylistId: null,
             playlistRemoveMode: false,
@@ -1535,23 +1532,18 @@
         const searchInput = $('#search-input');
         const contentBody = $('#content-body');
 
-        // views
         const viewLibrary = $('#view-library');
         const viewMovies = $('#view-movies');
         const viewPlaylists = $('#view-playlists');
         const viewQueue = $('#view-queue');
         const viewManageUsers = $('#view-manage-users');
 
-        // library
         const libraryList = $('#library-list');
-
-        // movies
         const moviesGrid = $('#movies-grid');
         const movieSongsContainer = $('#movie-songs-container');
         const movieSongsList = $('#movie-songs-list');
         const backToMovies = $('#back-to-movies');
 
-        // playlists
         const playlistsGrid = $('#playlists-grid');
         const playlistSongsContainer = $('#playlist-songs-container');
         const playlistSongsList = $('#playlist-songs-list');
@@ -1560,16 +1552,12 @@
         const btnRemoveFromPlaylist = $('#btn-remove-from-playlist');
         const btnCreatePlaylist = $('#btn-create-playlist');
 
-        // queue
         const queueList = $('#queue-list');
-
-        // manage users
         const usersList = $('#users-list');
         const newUserEmail = $('#new-user-email');
         const newUserPassword = $('#new-user-password');
         const btnCreateUser = $('#btn-create-user');
 
-        // modals
         const modalAddSong = $('#modal-add-song');
         const modalCreatePlaylist = $('#modal-create-playlist');
         const modalAddToPlaylist = $('#modal-add-to-playlist');
@@ -1580,7 +1568,6 @@
         const fabAdd = $('#fab-add');
         const navManageUsers = $('#nav-manage-users');
 
-        // player
         const npTitle = $('#np-title');
         const npArtist = $('#np-artist');
         const btnPlay = $('#btn-play');
@@ -1693,7 +1680,6 @@
             roleEl.textContent = state.user.role;
             roleEl.className = `role ${state.user.role === 'admin' ? 'admin' : ''}`;
 
-            // Show admin nav items
             const isAdmin = state.user.role === 'admin';
             navManageUsers.style.display = isAdmin ? 'block' : 'none';
             document.querySelectorAll('.admin-only').forEach(el => {
@@ -1703,7 +1689,7 @@
             await fetchAllData();
             renderCurrentView();
             setupPlayer();
-            setupEventListeners();
+            // Removed duplicate setupEventListeners() call – it's now called once at boot
         }
 
         // ============================================================
@@ -1723,10 +1709,7 @@
                 state.queue = queueRes.queue || [];
                 state.users = usersRes.users || [];
 
-                // Build queue order for player
                 rebuildQueueOrder();
-
-                // Render UI
                 renderAll();
             } catch (err) {
                 console.error('Fetch error:', err);
@@ -1735,12 +1718,10 @@
         }
 
         function rebuildQueueOrder() {
-            // start with queue, then add rest
             const queueIds = state.queue || [];
             const allIds = state.songs.map(s => s.id);
             const remaining = allIds.filter(id => !queueIds.includes(id));
             state.queueOrder = [...queueIds, ...remaining];
-            // find current index
             if (state.currentSongId) {
                 state.queueIndex = state.queueOrder.indexOf(state.currentSongId);
             } else {
@@ -1830,7 +1811,6 @@
             movieSongsContainer.style.display = 'block';
             moviesGrid.style.display = 'none';
             movieSongsList.innerHTML = songs.map((s, i) => songRowHTML(s, i, false)).join('');
-            // scroll to top of container
             movieSongsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -1904,7 +1884,6 @@
               </div>
             `;
             }).join('');
-            // wire up remove from playlist buttons
             if (isAdmin) {
                 playlistSongsList.querySelectorAll('.remove-pl-song-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
@@ -1914,7 +1893,6 @@
                     });
                 });
             }
-            // wire up play buttons
             playlistSongsList.querySelectorAll('.play-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const row = btn.closest('.song-row');
@@ -1981,7 +1959,6 @@
                 a.classList.toggle('active', a.dataset.view === view);
             });
 
-            // Reset movie/playlist drill-in
             if (view !== 'movies') {
                 movieSongsContainer.style.display = 'none';
                 moviesGrid.style.display = 'grid';
@@ -1990,15 +1967,12 @@
                 playlistSongsContainer.style.display = 'none';
                 playlistsGrid.style.display = 'grid';
             }
-            // Close mobile sidebar
             closeSidebar();
-            // Re-render the view content
             if (view === 'library') renderLibrary();
             if (view === 'movies') renderMovies();
             if (view === 'playlists') renderPlaylists();
             if (view === 'queue') renderQueue();
             if (view === 'manage-users' && state.user.role === 'admin') renderUsers();
-            // Reset search
             searchInput.value = '';
         }
 
@@ -2042,19 +2016,17 @@
             });
             npTitle.textContent = song.name;
             npArtist.textContent = `${song.artist} • ${song.movie}`;
-            // Update index
             if (fromIndex >= 0) {
                 state.queueIndex = fromIndex;
             } else {
                 state.queueIndex = state.queueOrder.indexOf(id);
             }
             updatePlayerUI();
-            renderAll(); // refresh highlights
+            renderAll();
         }
 
         function togglePlay() {
             if (!state.currentSongId) {
-                // play first song from queue or library
                 const first = state.queueOrder.length > 0 ? state.queueOrder[0] : null;
                 if (first) {
                     playSongById(first, 0);
@@ -2072,7 +2044,6 @@
 
         function playNext() {
             if (state.shuffle) {
-                // pick random from queueOrder
                 const available = state.queueOrder.filter(id => id !== state.currentSongId);
                 if (available.length === 0) return;
                 const randomId = available[Math.floor(Math.random() * available.length)];
@@ -2080,7 +2051,6 @@
                 return;
             }
             if (state.queueIndex < 0 || state.queueIndex >= state.queueOrder.length - 1) {
-                // loop back if repeat all
                 if (state.repeat === 'all' && state.queueOrder.length > 0) {
                     playSongById(state.queueOrder[0], 0);
                 }
@@ -2138,7 +2108,6 @@
             const repeatIcons = { none: 'fa-redo-alt', all: 'fa-redo-alt', one: 'fa-redo-alt' };
             btnRepeat.innerHTML = `<i class="fas ${repeatIcons[state.repeat] || 'fa-redo-alt'}"></i>`;
             btnRepeat.classList.toggle('active', state.repeat !== 'none');
-            // volume
             volumeSlider.value = state.volume;
             state.audio.volume = state.volume;
         }
@@ -2459,7 +2428,6 @@
 
             // Progress seek
             progressTrack.addEventListener('click', seekTo);
-            // drag
             let dragging = false;
             progressTrack.addEventListener('mousedown', () => { dragging = true; });
             document.addEventListener('mousemove', (e) => {
@@ -2525,7 +2493,6 @@
                 toast('Only admin can add to playlists.', 'error');
                 return;
             }
-            // refresh playlists
             await fetchAllData();
             const options = addToPlaylistOptions;
             if (state.playlists.length === 0) {
@@ -2569,21 +2536,23 @@
         });
 
         // ============================================================
-        //  BOOT
+        //  BOOT – Event listeners are attached first, then session check
         // ============================================================
+        // Attach all event listeners (login, sidebar, player, etc.) immediately
+        setupEventListeners();
+
         if (!checkSession()) {
             // show login
             loginScreen.classList.remove('hidden');
             app.classList.remove('active');
         }
 
-        // If API_URL is still placeholder, warn (now it's replaced, so no warning)
+        // If API_URL is still placeholder, warn
         if (API_URL === 'YOUR_SCRIPT_URL_HERE') {
             console.warn('⚠️ Please set API_URL to your Google Apps Script Web App URL.');
         }
 
         console.log('🎵 Melodify loaded.');
     </script>
-
 </body>
 </html>
