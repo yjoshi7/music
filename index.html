@@ -4,11 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Melodify — Stream Your Vibe</title>
-    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
         /* ===== RESET & BASE ===== */
@@ -1427,7 +1425,7 @@
                 <h3><i class="fas fa-plus-circle" style="color:var(--coral);"></i> Add New Song</h3>
                 <button class="close-sheet" data-modal="modal-add-song"><i class="fas fa-times"></i></button>
             </div>
-            <form id="add-song-form" novalidate>
+            <form id="add-song-form">
                 <div class="form-group">
                     <label>Song Title</label>
                     <input type="text" id="song-title" placeholder="Song name" required />
@@ -1442,7 +1440,8 @@
                 </div>
                 <div class="form-group">
                     <label>Audio URL</label>
-                    <input type="text" id="song-url" placeholder="songs/filename.mp3 or https://..." required />
+                    <!-- ✅ Changed from type="url" to type="text" to accept relative paths -->
+                    <input type="text" id="song-url" placeholder="songs/songname.mp3 or full URL" required />
                 </div>
                 <button type="submit" class="btn-primary">Add Song</button>
             </form>
@@ -1482,9 +1481,9 @@
 
     <script>
         // ============================================================
-        //  CONFIGURATION – UPDATED WITH YOUR NEW URL
+        //  CONFIGURATION – YOUR APPS SCRIPT URL
         // ============================================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwKaHSXsSlWkXsfSuuYgSDHu4bNZwaXRjd9PaIPso6Fk2aOWDJIfs3JCukxUkP42BhIbw/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwDnDk4DEMpdZD22GXyFCjyvxTYbSLQdVlDDuXe3nP3QNSqe8zRhjkUE5-0VbbwEL-L_Q/exec';
 
         // ============================================================
         //  STATE
@@ -1598,7 +1597,7 @@
         }
 
         // ============================================================
-        //  API HELPERS
+        //  API HELPERS – UPDATED: POST uses form-urlencoded to avoid CORS
         // ============================================================
         async function apiGet(action, params = {}) {
             const qs = new URLSearchParams({ action, ...params }).toString();
@@ -1607,10 +1606,19 @@
         }
 
         async function apiPost(action, body = {}) {
+            const formData = new URLSearchParams();
+            formData.append('action', action);
+            for (let key in body) {
+                if (body[key] !== undefined) {
+                    // If value is array/object, stringify it
+                    const value = (typeof body[key] === 'object') ? JSON.stringify(body[key]) : body[key];
+                    formData.append(key, value);
+                }
+            }
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, ...body })
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
             });
             return res.json();
         }
@@ -1689,7 +1697,7 @@
             await fetchAllData();
             renderCurrentView();
             setupPlayer();
-            // Removed duplicate setupEventListeners() call – it's now called once at boot
+            // setupEventListeners is already called once at boot
         }
 
         // ============================================================
@@ -2536,18 +2544,15 @@
         });
 
         // ============================================================
-        //  BOOT – Event listeners are attached first, then session check
+        //  BOOT – Event listeners attached first, then session check
         // ============================================================
-        // Attach all event listeners (login, sidebar, player, etc.) immediately
         setupEventListeners();
 
         if (!checkSession()) {
-            // show login
             loginScreen.classList.remove('hidden');
             app.classList.remove('active');
         }
 
-        // If API_URL is still placeholder, warn
         if (API_URL === 'YOUR_SCRIPT_URL_HERE') {
             console.warn('⚠️ Please set API_URL to your Google Apps Script Web App URL.');
         }
