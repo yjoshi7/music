@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Melodify — Stream Your Vibe</title>
+    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
         /* ===== RESET & BASE ===== */
@@ -547,7 +549,7 @@
         }
         .song-row {
             display: grid;
-            grid-template-columns: 40px 1fr 1fr 1fr 120px;
+            grid-template-columns: 1fr 1fr 1fr 120px;
             align-items: center;
             padding: 10px 16px;
             border-radius: var(--radius-sm);
@@ -561,12 +563,7 @@
             background: rgba(255, 255, 255, 0.07);
             border-color: var(--border-glass);
         }
-        .song-row .idx {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            text-align: center;
-            font-weight: 500;
-        }
+        /* Removed .idx column */
         .song-row .s-name {
             font-weight: 500;
             white-space: nowrap;
@@ -628,9 +625,6 @@
         .song-row.current {
             background: var(--cyan-dim);
             border-color: var(--cyan);
-        }
-        .song-row.current .idx {
-            color: var(--cyan);
         }
 
         /* ===== MOVIE GRID ===== */
@@ -845,8 +839,8 @@
             box-shadow: 0 0 24px rgba(255, 107, 107, 0.3);
             background: linear-gradient(135deg, #ff7a7a, #e55a5a);
         }
-        #player-bar .player-controls .shuffle.active,
-        #player-bar .player-controls .repeat.active {
+        /* ✅ FIXED: removed .shuffle and .repeat as class selectors – now use .active directly on button */
+        #player-bar .player-controls button.active {
             color: var(--cyan);
         }
         #player-bar .progress-area {
@@ -880,7 +874,8 @@
             width: 0%;
             background: linear-gradient(90deg, var(--coral), var(--cyan));
             border-radius: 4px;
-            transition: width 0.05s linear;
+            /* ✅ FIXED: removed transition so width updates instantly */
+            transition: none;
         }
         #player-bar .volume-wrap {
             display: flex;
@@ -1091,7 +1086,7 @@
                 display: none !important;
             }
             .song-row {
-                grid-template-columns: 30px 1fr 80px;
+                grid-template-columns: 1fr 80px;
                 padding: 8px 12px;
                 font-size: 0.85rem;
             }
@@ -1162,7 +1157,7 @@
                 max-width: 100%;
             }
             .song-row {
-                grid-template-columns: 28px 1fr 60px;
+                grid-template-columns: 1fr 60px;
                 font-size: 0.8rem;
                 gap: 6px;
             }
@@ -1440,7 +1435,6 @@
                 </div>
                 <div class="form-group">
                     <label>Audio URL</label>
-                    <!-- ✅ Changed from type="url" to type="text" to accept relative paths -->
                     <input type="text" id="song-url" placeholder="songs/songname.mp3 or full URL" required />
                 </div>
                 <button type="submit" class="btn-primary">Add Song</button>
@@ -1610,7 +1604,6 @@
             formData.append('action', action);
             for (let key in body) {
                 if (body[key] !== undefined) {
-                    // If value is array/object, stringify it
                     const value = (typeof body[key] === 'object') ? JSON.stringify(body[key]) : body[key];
                     formData.append(key, value);
                 }
@@ -1697,7 +1690,6 @@
             await fetchAllData();
             renderCurrentView();
             setupPlayer();
-            // setupEventListeners is already called once at boot
         }
 
         // ============================================================
@@ -1738,6 +1730,26 @@
         }
 
         // ============================================================
+        //  GET CURRENT CONTEXT SONGS
+        // ============================================================
+        function getContextSongs() {
+            if (state.currentView === 'playlist' && state.selectedPlaylistId) {
+                const pl = state.playlists.find(p => p.id === state.selectedPlaylistId);
+                if (pl) {
+                    const ids = pl.songIds || [];
+                    return state.songs.filter(s => ids.includes(s.id));
+                }
+            }
+            if (state.currentView === 'movies' && state.selectedMovie) {
+                return state.songs.filter(s => s.movie === state.selectedMovie);
+            }
+            if (state.currentView === 'queue') {
+                return state.queue.map(id => state.songs.find(s => s.id === id)).filter(Boolean);
+            }
+            return state.songs;
+        }
+
+        // ============================================================
         //  RENDER
         // ============================================================
         function renderAll() {
@@ -1775,7 +1787,6 @@
             const inQueue = state.queue.includes(song.id);
             return `
             <div class="song-row ${isCurrent ? 'current' : ''}" data-id="${song.id}">
-              <span class="idx">${idx + 1}</span>
               <span class="s-name">${esc(song.name)}</span>
               <span class="s-artist">${esc(song.artist)}</span>
               <span class="s-movie">${esc(song.movie)}</span>
@@ -1815,6 +1826,7 @@
         }
 
         function showMovieSongs(movie) {
+            state.selectedMovie = movie;
             const songs = state.songs.filter(s => s.movie === movie);
             movieSongsContainer.style.display = 'block';
             moviesGrid.style.display = 'none';
@@ -1881,7 +1893,6 @@
                 const isCurrent = state.currentSongId === s.id;
                 return `
               <div class="song-row ${isCurrent ? 'current' : ''}" data-id="${s.id}">
-                <span class="idx">${i + 1}</span>
                 <span class="s-name">${esc(s.name)}</span>
                 <span class="s-artist">${esc(s.artist)}</span>
                 <span class="s-movie">${esc(s.movie)}</span>
@@ -1970,10 +1981,12 @@
             if (view !== 'movies') {
                 movieSongsContainer.style.display = 'none';
                 moviesGrid.style.display = 'grid';
+                state.selectedMovie = null;
             }
             if (view !== 'playlists') {
                 playlistSongsContainer.style.display = 'none';
                 playlistsGrid.style.display = 'grid';
+                state.selectedPlaylistId = null;
             }
             closeSidebar();
             if (view === 'library') renderLibrary();
@@ -1999,11 +2012,11 @@
             audio.addEventListener('ended', handleSongEnd);
             audio.addEventListener('play', () => {
                 state.isPlaying = true;
-                btnPlay.innerHTML = '<i class="fas fa-pause"></i>';
+                updatePlayerUI();
             });
             audio.addEventListener('pause', () => {
                 state.isPlaying = false;
-                btnPlay.innerHTML = '<i class="fas fa-play"></i>';
+                updatePlayerUI();
             });
             audio.addEventListener('error', () => {
                 toast('Error playing audio. Check the URL.', 'error');
@@ -2024,20 +2037,15 @@
             });
             npTitle.textContent = song.name;
             npArtist.textContent = `${song.artist} • ${song.movie}`;
-            if (fromIndex >= 0) {
-                state.queueIndex = fromIndex;
-            } else {
-                state.queueIndex = state.queueOrder.indexOf(id);
-            }
             updatePlayerUI();
             renderAll();
         }
 
         function togglePlay() {
             if (!state.currentSongId) {
-                const first = state.queueOrder.length > 0 ? state.queueOrder[0] : null;
-                if (first) {
-                    playSongById(first, 0);
+                const ctx = getContextSongs();
+                if (ctx.length > 0) {
+                    playSongById(ctx[0].id);
                 } else {
                     toast('No songs available.', 'info');
                 }
@@ -2051,29 +2059,43 @@
         }
 
         function playNext() {
+            const ctx = getContextSongs();
+            if (ctx.length === 0) return;
+
             if (state.shuffle) {
-                const available = state.queueOrder.filter(id => id !== state.currentSongId);
+                const available = ctx.filter(s => s.id !== state.currentSongId);
                 if (available.length === 0) return;
-                const randomId = available[Math.floor(Math.random() * available.length)];
-                playSongById(randomId);
+                const randomSong = available[Math.floor(Math.random() * available.length)];
+                playSongById(randomSong.id);
                 return;
             }
-            if (state.queueIndex < 0 || state.queueIndex >= state.queueOrder.length - 1) {
-                if (state.repeat === 'all' && state.queueOrder.length > 0) {
-                    playSongById(state.queueOrder[0], 0);
+
+            const currentIdx = ctx.findIndex(s => s.id === state.currentSongId);
+            if (currentIdx === -1) {
+                // Current song not in context, start from beginning
+                playSongById(ctx[0].id);
+                return;
+            }
+
+            if (currentIdx < ctx.length - 1) {
+                playSongById(ctx[currentIdx + 1].id);
+            } else {
+                // Last song
+                if (state.repeat === 'all') {
+                    playSongById(ctx[0].id);
                 }
-                return;
+                // If repeat is 'none', just stop (song ended event already handled)
             }
-            const nextId = state.queueOrder[state.queueIndex + 1];
-            playSongById(nextId, state.queueIndex + 1);
         }
 
         function playPrev() {
-            if (state.queueIndex > 0) {
-                const prevId = state.queueOrder[state.queueIndex - 1];
-                playSongById(prevId, state.queueIndex - 1);
-            } else if (state.queueOrder.length > 0 && state.repeat === 'all') {
-                playSongById(state.queueOrder[state.queueOrder.length - 1], state.queueOrder.length - 1);
+            const ctx = getContextSongs();
+            if (ctx.length === 0) return;
+            const currentIdx = ctx.findIndex(s => s.id === state.currentSongId);
+            if (currentIdx > 0) {
+                playSongById(ctx[currentIdx - 1].id);
+            } else if (state.repeat === 'all' && ctx.length > 0) {
+                playSongById(ctx[ctx.length - 1].id);
             }
         }
 
@@ -2088,7 +2110,7 @@
 
         function updateProgress() {
             const audio = state.audio;
-            if (audio.duration) {
+            if (audio.duration && isFinite(audio.duration)) {
                 const pct = (audio.currentTime / audio.duration) * 100;
                 progressFill.style.width = `${pct}%`;
                 currentTimeEl.textContent = formatTime(audio.currentTime);
@@ -2111,11 +2133,20 @@
                 npTitle.textContent = 'No song selected';
                 npArtist.textContent = '—';
             }
-            btnPlay.innerHTML = state.isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+            // ✅ FIXED: Button icons
+            if (state.isPlaying) {
+                btnPlay.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                btnPlay.innerHTML = '<i class="fas fa-play"></i>';
+            }
+            // ✅ FIXED: Shuffle & Repeat active states
             btnShuffle.classList.toggle('active', state.shuffle);
-            const repeatIcons = { none: 'fa-redo-alt', all: 'fa-redo-alt', one: 'fa-redo-alt' };
-            btnRepeat.innerHTML = `<i class="fas ${repeatIcons[state.repeat] || 'fa-redo-alt'}"></i>`;
             btnRepeat.classList.toggle('active', state.repeat !== 'none');
+            if (state.repeat === 'one') {
+                btnRepeat.innerHTML = '<i class="fas fa-redo-alt" style="font-size:0.8rem;position:relative;"><span style="position:absolute;top:-2px;right:-4px;font-size:0.5rem;">1</span></i>';
+            } else {
+                btnRepeat.innerHTML = '<i class="fas fa-redo-alt"></i>';
+            }
             volumeSlider.value = state.volume;
             state.audio.volume = state.volume;
         }
@@ -2354,10 +2385,12 @@
             backToMovies.addEventListener('click', () => {
                 movieSongsContainer.style.display = 'none';
                 moviesGrid.style.display = 'grid';
+                state.selectedMovie = null;
             });
             backToPlaylists.addEventListener('click', () => {
                 playlistSongsContainer.style.display = 'none';
                 playlistsGrid.style.display = 'grid';
+                state.selectedPlaylistId = null;
             });
 
             // Add song
@@ -2544,7 +2577,7 @@
         });
 
         // ============================================================
-        //  BOOT – Event listeners attached first, then session check
+        //  BOOT
         // ============================================================
         setupEventListeners();
 
