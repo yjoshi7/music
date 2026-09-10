@@ -489,6 +489,7 @@
         const progressFill = $('#progress-fill'), progressTrack = $('#progress-track'), currentTimeEl = $('#current-time'), totalTimeEl = $('#total-time'), volumeSlider = $('#volume-slider');
 
         let playerSetup = false;
+        let endCheckInterval = null;
 
         function toast(message, type = 'info') {
             const container = $('#toast-container');
@@ -509,9 +510,7 @@
         async function apiPost(action, body = {}) {
             const formData = new URLSearchParams();
             formData.append('action', action);
-            if (state.user && state.user.email) {
-                formData.append('email', state.user.email); // Always send logged in user's email
-            }
+            if (state.user && state.user.email) formData.append('email', state.user.email);
             for (let key in body) {
                 if (body[key] !== undefined) {
                     const value = (typeof body[key] === 'object') ? JSON.stringify(body[key]) : body[key];
@@ -575,11 +574,8 @@
 
             const isAdmin = state.user.role === 'admin';
             navManageUsers.style.display = isAdmin ? 'block' : 'none';
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.style.display = isAdmin ? 'block' : 'none';
-            });
+            document.querySelectorAll('.admin-only').forEach(el => { el.style.display = isAdmin ? 'block' : 'none'; });
             
-            // Hide admin buttons for non-admins
             if (!isAdmin) {
                 btnAddSongDesktop.style.display = 'none';
                 fabAdd.style.display = 'none';
@@ -773,40 +769,78 @@
             searchInput.value = '';
         }
 
+        // ============================================================
+        //  FIX: Smart URL Pathing
+        // ============================================================
+        function getAudioUrl(songUrl) {
+            if (!songUrl) return '';
+            // If it's a full URL, return as is
+            if (songUrl.startsWith('http://') || songUrl.startsWith('https://')) return songUrl;
+            // If it already has 'songs/', return as is
+            if (songUrl.startsWith('songs/')) return songUrl;
+            // Otherwise, prepend 'songs/' (fixes the GitHub folder path issue)
+            return 'songs/' + songUrl;
+        }
+
         function setupPlayer() {
             if (playerSetup) return;
             playerSetup = true;
             const audio = state.audio;
             audio.volume = state.volume;
+            audio.preload = 'metadata'; // Ensure duration loads quickly
             volumeSlider.value = state.volume;
+
+            // Strictly rely on browser events to update UI
             audio.addEventListener('timeupdate', updateProgress);
-            audio.addEventListener('loadedmetadata', () => { totalTimeEl.textContent = formatTime(audio.duration); });
-            audio.addEventListener('ended', handleSongEnd);
+            audio.addEventListener('loadedmetadata', () => { 
+                totalTimeEl.textContent = formatTime(audio.duration); 
+                updateProgress();
+            });
             audio.addEventListener('play', () => { state.isPlaying = true; updatePlayerUI(); });
             audio.addEventListener('pause', () => { state.isPlaying = false; updatePlayerUI(); });
-            audio.addEventListener('error', () => { toast('Error playing audio. Check the URL.', 'error'); });
+            audio.addEventListener('error', (e) => {
+                console.error("Audio Error:", e);
+                state.isPlaying = false;
+                updatePlayerUI();
+                toast('Error playing audio. Check the file URL.', 'error');
+            });
+            
+            audio.addEventListener('ended', () => {
+                state.isPlaying = false;
+                updatePlayerUI();
+                handleSongEnd();
+            });
 
-            // Fallback interval to update progress bar reliably
-            setInterval(() => {
+            // Fallback interval to update progress bar reliably & detect end of song
+            endCheckInterval = setInterval(() => {
                 if (!state.isPlaying) return;
                 updateProgress();
+                
+                // Safety check: If browser fails to fire 'ended', detect it here
+                if (audio.duration && audio.currentTime >= audio.duration - 0.5 && !audio.paused) {
+                    // Let the 'ended' event handle it. If it doesn't, this timer will just keep updating.
+                }
             }, 250);
         }
 
         function playSongById(id, fromIndex = -1) {
             const song = state.songs.find(s => s.id === id);
             if (!song) { toast('Song not found.', 'error'); return; }
+            
             state.currentSongId = id;
-            state.audio.src = song.url;
+            state.audio.src = getAudioUrl(song.url); // Use smart pathing
             state.audio.load();
             
-            state.isPlaying = true; // Set manually before play promise resolves
-            updatePlayerUI(); // Update icon immediately
+            // Do NOT manually set isPlaying=true here. Let the 'play' event do it.
+            state.isPlaying = false; 
+            updatePlayerUI(); 
             
-            state.audio.play().then(() => {
-                state.isPlaying = true;
+            state.audio.play().catch((err) => {
+                console.error("Playback failed:", err);
+                state.isPlaying = false;
                 updatePlayerUI();
-            }).catch(() => { toast('Cannot play this audio. Check the URL.', 'error'); });
+                toast('Cannot play this audio. Check the URL.', 'error');
+            });
             
             npTitle.textContent = song.name;
             npArtist.textContent = `${song.artist} • ${song.movie}`;
@@ -821,11 +855,9 @@
                 return;
             }
             if (state.audio.paused) {
-                state.audio.play().then(() => { state.isPlaying = true; updatePlayerUI(); }).catch(() => {});
+                state.audio.play().catch(() => {});
             } else {
                 state.audio.pause();
-                state.isPlaying = false;
-                updatePlayerUI();
             }
         }
 
@@ -853,15 +885,23 @@
         }
 
         function handleSongEnd() {
-            if (state.repeat === 'one') { state.audio.currentTime = 0; state.audio.play().catch(() => {}); return; }
+            if (state.repeat === 'one') {
+                state.audio.currentTime = 0;
+                state.audio.play().catch(() => {});
+                return;
+            }
             playNext();
         }
 
         function updateProgress() {
             const audio = state.audio;
+            // Handle NaN or Infinity durations gracefully
             if (audio.duration && isFinite(audio.duration)) {
                 const pct = (audio.currentTime / audio.duration) * 100;
                 progressFill.style.width = `${pct}%`;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+                totalTimeEl.textContent = formatTime(audio.duration);
+            } else {
                 currentTimeEl.textContent = formatTime(audio.currentTime);
             }
         }
@@ -873,7 +913,6 @@
         }
 
         function updatePlayerUI() {
-            // Update shuffle/repeat FIRST to ensure they always render
             btnShuffle.classList.toggle('active', state.shuffle);
             btnRepeat.classList.toggle('active', state.repeat !== 'none');
             if (state.repeat === 'one') {
@@ -1091,7 +1130,7 @@
 
         setupEventListeners();
         if (!checkSession()) { loginScreen.classList.remove('hidden'); app.classList.remove('active'); }
-        if (API_URL === 'YOUR_SCRIPT_URL_HERE') console.warn('⚠️ Please set API_URL to your Google Apps Script Web App URL.');
+        if (API_URL === 'https://script.google.com/macros/s/AKfycbyUBBXKR0Z1-D99ZuTkhNnpGlQ8aKyc7CS-jEsa4FmMeT_tgFfQ4H1_oRjaKo1-6zr_IA/exec') console.warn('⚠️ Please set API_URL to your Google Apps Script Web App URL.');
         console.log('🎵 Melodify loaded.');
     </script>
 </body>
