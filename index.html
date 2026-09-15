@@ -429,7 +429,7 @@
                 <div class="form-group"><label>Song Title</label><input type="text" id="song-title" placeholder="Song name" required /></div>
                 <div class="form-group"><label>Artist</label><input type="text" id="song-artist" placeholder="Artist name" required /></div>
                 <div class="form-group"><label>Movie / Album</label><input type="text" id="song-movie" placeholder="Movie or album name" required /></div>
-                <div class="form-group"><label>Audio URL</label><input type="text" id="song-url" placeholder="songs/songname.mp3 or full URL" required /></div>
+                <div class="form-group"><label>Audio URL</label><input type="text" id="song-url" placeholder="Youth Album/Fsy 2024/Diamond.mp3 or full URL" required /></div>
                 <button type="submit" class="btn-primary">Add Song</button>
             </form>
         </div>
@@ -584,7 +584,7 @@
             }
 
             await fetchAllData();
-            renderAll(); // ✅ FIXED: Changed from renderCurrentView() to renderAll()
+            renderAll();
             setupPlayer();
         }
 
@@ -771,9 +771,8 @@
 
         function getAudioUrl(songUrl) {
             if (!songUrl) return '';
-            if (songUrl.startsWith('http://') || songUrl.startsWith('https://')) return songUrl;
-            if (songUrl.startsWith('songs/')) return songUrl;
-            return 'songs/' + songUrl;
+            // ✅ FIX: Trust the exact path from the database, do not prepend 'songs/'
+            return songUrl;
         }
 
         function setupPlayer() {
